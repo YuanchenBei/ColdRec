@@ -13,12 +13,11 @@
 </p>
 
 
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blue.svg)](https://github.com/YuanchenBei/Awesome-Cold-Start-Recommendation) ![Stars](https://img.shields.io/github/stars/YuanchenBei/Awesome-Cold-Start-Recommendation?color=green)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blue.svg)](https://github.com/YuanchenBei/Awesome-Cold-Start-Recommendation) ![Stars](https://img.shields.io/github/stars/YuanchenBei/ColdRec?color=green)
 
 
 # ❄️ ColdRec 🔥
-**ColdRec** is a Comprehensive Benchmark for Cold-Start Recommendation. 
-
+☃️ **ColdRec** is a comprehensive benchmark for cold-start recommendation. 
 
 
 ---
@@ -38,6 +37,6 @@
 | 10     | [Recommendation for New Users and New Items via Randomized Training and Mixture-of-Experts Transformation](https://zziwei.github.io/pubs/Ziwei_SIGIR_2020_Cold.pdf)  |    Heater    | SIGIR 2020 |
 | 11    | [Contrastive Learning for Cold-Start Recommendation](https://arxiv.org/pdf/2107.05315)  |    CLCRec    |  MM 2021 |
 | 12     | [Generative Adversarial Framework for Cold-Start Item Recommendation](https://dl.acm.org/doi/abs/10.1145/3477495.3531897)  |    GAR   | SIGIR 2022 |
-| 13     | [Aligning Distillation For Cold-start Item Recommendation](https://dl.acm.org/doi/10.1145/3539618.3591732)  |    ALDI   | SIGIR 2023 |
+| 13     | [GoRec: A Generative Cold-start Recommendation Framework](https://dl.acm.org/doi/abs/10.1145/3581783.3612238)  |   GoRec   | MM 2023 |
 | 14     | [Contrastive Collaborative Filtering for Cold-Start Item Recommendation](https://arxiv.org/pdf/2302.02151)  |   CCFRec   | WWW 2023 |
-| 15     | [GoRec: A Generative Cold-start Recommendation Framework](https://dl.acm.org/doi/abs/10.1145/3581783.3612238)  |   GoRec   | MM 2023 |
+| 15     | [Aligning Distillation For Cold-start Item Recommendation](https://dl.acm.org/doi/10.1145/3539618.3591732)  |    ALDI   | SIGIR 2023 |
