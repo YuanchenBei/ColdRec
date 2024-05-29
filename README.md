@@ -13,11 +13,23 @@
 </p>
 
 
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blue.svg)](https://github.com/YuanchenBei/Awesome-Cold-Start-Recommendation) ![Stars](https://img.shields.io/github/stars/YuanchenBei/ColdRec?color=green)
+<div align="center">
+    <a href="https://github.com/YuanchenBei/ColdRec"><img src="https://img.shields.io/badge/PRs-welcome-blue.svg"></a>
+    <a href="https://github.com/YuanchenBei/ColdRec/blob/main/LICENSE"><img src="https://badgen.net/github/license/YuanchenBei/ColdRec?color=green"></a>
+</div>
+
+
+![Stars](https://img.shields.io/github/stars/YuanchenBei/ColdRec?color=green)
 
 
 # ❄️ ColdRec 🔥
 ☃️ **ColdRec** is a comprehensive benchmark for cold-start recommendation. 
+
+---
+## 🛫 Installation
+
+---
+## 🚀 Quick Start
 
 
 ---
