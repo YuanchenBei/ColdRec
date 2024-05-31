@@ -10,13 +10,23 @@
 </div>
 
 
-
 # ❄️ ColdRec 🔥
-☃️ **ColdRec** is a comprehensive benchmark for cold-start recommendation. 
+☃️ **ColdRec** is a comprehensive benchmark for cold-start recommendation. In coldrec, models follow a ***unified pipeline***, the datasets follow a ***unified division***, and tasks include ***cold user/item recommendation***, ***warm user/item recommendation***, and ***overall user/item recommendation***, targeting at providing the community with a ***comprehensive*** and ***fair*** benchmark evaluation for cold-start recommendation.
 
 ---
-## 🛫 Installation
-Coming soon...
+## 🛫 Requirements
+Coldrec hopes to avoid the complicated and tedious packaging process and uses native ***pytorch*** and a small number of necessary libraries to build the codebase.
+
+``` bash
+python >= 3.8.0 
+torch >= 1.11.0
+faiss-gpu >= 1.7.3
+pandas >= 2.0.3
+numba >= 0.58.1 
+numpy >= 1.24.4
+scikit-learn >= 1.3.2
+pickle >= 0.7.5
+```
 
 ---
 ## 🚀 Quick Start
