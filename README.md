@@ -4,22 +4,11 @@
 
 ------
 
-<p align="center">
-  <a href="#opengsl">Overview</a> •
-  <a href="#installation">Installation</a> •
-  <a href="https://github.com/OpenGSL/OpenGSL/tree/main/examples">Examples</a> •
-  <a href="https://opengsl.readthedocs.io/en/latest/index.html">Docs</a> •
-  <a href="#citation">Citation</a> 
-</p>
-
-
 <div align="center">
     <a href="https://github.com/YuanchenBei/ColdRec"><img src="https://img.shields.io/badge/PRs-welcome-blue.svg"></a>
     <a href="https://github.com/YuanchenBei/ColdRec/blob/main/LICENSE"><img src="https://badgen.net/github/license/YuanchenBei/ColdRec?color=green"></a>
 </div>
 
-
-![Stars](https://img.shields.io/github/stars/YuanchenBei/ColdRec?color=green)
 
 
 # ❄️ ColdRec 🔥
@@ -27,9 +16,11 @@
 
 ---
 ## 🛫 Installation
+Coming soon...
 
 ---
 ## 🚀 Quick Start
+Coming soon...
 
 
 ---
@@ -52,3 +43,4 @@
 | 13     | [GoRec: A Generative Cold-start Recommendation Framework](https://dl.acm.org/doi/abs/10.1145/3581783.3612238)  |   GoRec   | MM 2023 |
 | 14     | [Contrastive Collaborative Filtering for Cold-Start Item Recommendation](https://arxiv.org/pdf/2302.02151)  |   CCFRec   | WWW 2023 |
 | 15     | [Aligning Distillation For Cold-start Item Recommendation](https://dl.acm.org/doi/10.1145/3539618.3591732)  |    ALDI   | SIGIR 2023 |
+
