@@ -30,10 +30,12 @@ pickle >= 0.7.5
 
 ---
 ## 🚀 Quick Start
-1️⃣ **Dataset Preprocess**
+**1️⃣ Dataset Preprocess**
+
 We have provided the preprocessed datasets in [Google Drive](https://drive.google.com/drive/folders/13JJ25vf5dpFzxe1ITQYONrEIUAsB2ZU8?usp=sharing). You can download the dataset from the Google Drive link directly, unzip it, and place it into the ***./data*** folder. Then, you can process it into the format for model training with ***simple two scripts***, of which the details can be found in the page of [dataset details](https://github.com/YuanchenBei/ColdRec/blob/main/data/README.md).
 
-2️⃣ **Warm Embedding Pre-Training**
+**2️⃣ Warm Embedding Pre-Training**
+
 This step is *not necessary*, but since most of the work requires this step, it is *recommended* to complete this step to fully evaluate all models. We have provided both widely adopted collaborative filtering modle MF and graph-based model LightGCN as warm recommender. You can obtain the pre-trained warm user/item embeddings with the following two options:
 
 ***Options 1:*** You can directly access the BPR-MF pre-trained embeddings at the [Google Drive](https://drive.google.com/drive/folders/1cHTWgNGTlWJwO2ziS4crxkpuH38rTeCf?usp=sharing). Then, the embedding folder associated to each dataset should be placed in the ***./emb*** folder.
@@ -44,7 +46,8 @@ python main.py --dataset [DATASET NAME] --model [MF/LightGCN] --cold_object [use
 ```
 In the above script, the **[DATASET NAME]** for --dataset should be replaced by your target dataset name, such as movielens. Then, the **[MF/LightGCN]** for --model should be selected as the warm recommender type. Finally, the **[user/item]** for --cold_object should be selected as user or item for the user cold-start setting or item cold-start setting.
 
-3️⃣ **Cold-Start Model Training and Evaluation**
+**3️⃣ Cold-Start Model Training and Evaluation**
+
 Coming to this step, you can start to train the cold-start model with one script:
 ``` bash
 python main.py --dataset [DATASET NAME] --model [MODEL NAME] --cold_object [user/item]
