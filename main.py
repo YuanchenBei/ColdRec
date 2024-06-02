@@ -83,10 +83,12 @@ if __name__ == '__main__':
         else:
             set_seed(round, args.use_gpu)
         # model register
-        available_models = ['MF', 'LightGCN', 'KNN', 'DUIF', 'DeepMusic', 'MTPR', 'VBPR', 'AMR', 'GAR', 'ALDI',
-                            'CLCRec', 'LARA', 'CCFCRec', 'DropoutNet', 'Heater', 'MetaEmbedding', 'GoRec']
+        available_models = ['MF', 'LightGCN', 'SimGCL', 'XSimGCL', 'NCL', 'KNN', 'DUIF', 'DeepMusic', 'MTPR',
+                            'VBPR', 'AMR', 'GAR', 'ALDI', 'CLCRec', 'LARA', 'CCFCRec', 'DropoutNet', 'Heater',
+                            'MetaEmbedding', 'GoRec']
         if args.model in available_models:
-            if args.model == 'MF' or args.model == 'LightGCN':
+            if args.model == 'MF' or args.model == 'LightGCN' or args.model == 'SimGCL' \
+                    or args.model == 'XSimGCL' or args.model == 'NCL':
                 # recommender backbone training
                 model = eval(args.model)(args, training_data, warm_valid_data, cold_valid_data, all_valid_data,
                                          warm_test_data, cold_test_data, all_test_data, user_num, item_num,
