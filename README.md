@@ -42,9 +42,9 @@ This step is *not necessary*, but since most of the work requires this step, it 
 
 ***Options 2:*** You can also pre-train the warm embedding by yourself. Specifically, you can simply obtain the pre-trained warm embeddings by running the following script:
 ``` bash
-python main.py --dataset [DATASET NAME] --model [MF/LightGCN] --cold_object [user/item]
+python main.py --dataset [DATASET NAME] --model [WARM RECOMMENDER] --cold_object [user/item]
 ```
-In the above script, the **[DATASET NAME]** for --dataset should be replaced by your target dataset name, such as movielens. Then, the **[MF/LightGCN]** for --model should be selected as the warm recommender type. Finally, the **[user/item]** for --cold_object should be selected as user or item for the user cold-start setting or item cold-start setting.
+In the above script, the **[DATASET NAME]** for --dataset should be replaced by your target dataset name, such as movielens. Then, the **[WARM RECOMMENDER]** for --model should be selected as the warm recommender type (MF, LightGCN, NCL, SimGCL, and XSimGCL). Finally, the **[user/item]** for --cold_object should be selected as user or item for the user cold-start setting or item cold-start setting.
 
 **3️⃣ Cold-Start Model Training and Evaluation**
 
@@ -52,7 +52,7 @@ Coming to this step, you can start to train the cold-start model with one script
 ``` bash
 python main.py --dataset [DATASET NAME] --model [MODEL NAME] --cold_object [user/item]
 ```
-In the above script, the **[MODEL NAME]** for --model is the expected model name, where we have provided 17 representative models as the **Supported Models**. You can also flexibly register your own model with the ColdRec framework for evaluation.
+In the above script, the **[MODEL NAME]** for --model is the expected model name, where we have provided 20 representative models as the **Supported Models**. You can also flexibly register your own model with the ColdRec framework for evaluation.
 
 ---
 
@@ -72,8 +72,11 @@ In the above script, the **[MODEL NAME]** for --model is the expected model name
 | 11     | [LARA: Attribute-to-feature Adversarial Learning for New-item Recommendation](https://ir.sdu.edu.cn/~zhaochunren/papers/7LARAAttribute-to-featureadversariallearningfornew-itemrecommendation.pdf)  |    LARA    | WSDM 2020 |
 | 12     | [Recommendation for New Users and New Items via Randomized Training and Mixture-of-Experts Transformation](https://zziwei.github.io/pubs/Ziwei_SIGIR_2020_Cold.pdf)  |    Heater    | SIGIR 2020 |
 | 13    | [Contrastive Learning for Cold-Start Recommendation](https://arxiv.org/pdf/2107.05315)  |    CLCRec    |  MM 2021 |
-| 14     | [Generative Adversarial Framework for Cold-Start Item Recommendation](https://dl.acm.org/doi/abs/10.1145/3477495.3531897)  |    GAR   | SIGIR 2022 |
-| 15     | [GoRec: A Generative Cold-start Recommendation Framework](https://dl.acm.org/doi/abs/10.1145/3581783.3612238)  |   GoRec   | MM 2023 |
-| 16     | [Contrastive Collaborative Filtering for Cold-Start Item Recommendation](https://arxiv.org/pdf/2302.02151)  |   CCFRec   | WWW 2023 |
-| 17     | [Aligning Distillation For Cold-start Item Recommendation](https://dl.acm.org/doi/10.1145/3539618.3591732)  |    ALDI   | SIGIR 2023 |
+| 14    | [Improving Graph Collaborative Filtering with Neighborhood-enriched Contrastive Learning](https://arxiv.org/pdf/2202.06200)  | NCL     | WWW 2022 |
+| 15    | [Are Graph Augmentations Necessary? Simple Graph Contrastive Learning for Recommendation](https://arxiv.org/pdf/2112.08679)  | SimGCL     | SIGIR 2022 |
+| 16     | [Generative Adversarial Framework for Cold-Start Item Recommendation](https://dl.acm.org/doi/abs/10.1145/3477495.3531897)  |    GAR   | SIGIR 2022 |
+| 17     |  [XSimGCL: Towards Extremely Simple Graph Contrastive Learning for Recommendation](https://arxiv.org/pdf/2209.02544) |  XSimGCL  |   TKDE 2023 |
+| 18     | [GoRec: A Generative Cold-start Recommendation Framework](https://dl.acm.org/doi/abs/10.1145/3581783.3612238)  |   GoRec   | MM 2023 |
+| 19     | [Contrastive Collaborative Filtering for Cold-Start Item Recommendation](https://arxiv.org/pdf/2302.02151)  |   CCFRec   | WWW 2023 |
+| 20     | [Aligning Distillation For Cold-start Item Recommendation](https://dl.acm.org/doi/10.1145/3539618.3591732)  |    ALDI   | SIGIR 2023 |
 
