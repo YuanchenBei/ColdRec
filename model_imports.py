@@ -15,3 +15,6 @@ from model.DropoutNet import DropoutNet
 from model.Heater import Heater
 from model.MetaEmbedding import MetaEmbedding
 from model.GoRec import GoRec
+from model.SimGCL import SimGCL
+from model.XSimGCL import XSimGCL
+from model.NCL import NCL
