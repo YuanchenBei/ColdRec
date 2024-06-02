@@ -11,7 +11,7 @@
 
 
 # ❄️ ColdRec 🔥
-☃️ **ColdRec** is a comprehensive benchmark for cold-start recommendation. In coldrec, models follow a ***unified pipeline***, the datasets follow a ***unified division***, and tasks include ***cold user/item recommendation***, ***warm user/item recommendation***, and ***overall user/item recommendation***, targeting at providing the community with a ***comprehensive*** and ***fair*** benchmark evaluation for cold-start recommendation.
+☃️ **ColdRec** is a comprehensive open-source toolkit and benchmark for cold-start recommendation. In coldrec, models follow a ***unified pipeline***, the datasets follow a ***unified division***, and tasks include ***cold user/item recommendation***, ***warm user/item recommendation***, and ***overall user/item recommendation***, targeting at providing the community with a ***comprehensive*** and ***fair*** benchmark evaluation for cold-start recommendation.
 
 ---
 ## 🛫 Requirements
