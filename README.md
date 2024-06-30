@@ -13,6 +13,14 @@
 # ❄️ ColdRec 🔥
 ☃️ **ColdRec** is a comprehensive open-source toolkit and benchmark for cold-start recommendation. In coldrec, models follow a ***unified pipeline***, the datasets follow a ***unified division***, and tasks include ***cold user/item recommendation***, ***warm user/item recommendation***, and ***overall user/item recommendation***, targeting at providing the community with a ***comprehensive*** and ***fair*** benchmark evaluation for cold-start recommendation.
 
+
+- [❄️ ColdRec 🔥](#️-coldrec-)
+  - [🛫 Requirements](#-requirements)
+  - [🚀 Quick Start](#-quick-start)
+  - [🧸 Supported Models](#-supported-models)
+
+🥳 **Update in 2024.06.30**: Add automatic hyper-parameter tuning, you can install one more base library *optuna* to include this module.
+
 ---
 ## 🛫 Requirements
 ColdRec hopes to avoid the complicated and tedious packaging process and uses native ***pytorch*** and a small number of necessary libraries to build the codebase.
@@ -26,6 +34,7 @@ numba >= 0.58.1
 numpy >= 1.24.4
 scikit-learn >= 1.3.2
 pickle >= 0.7.5
+optuna >= 3.6.1 (If you need automatic hyper-parameter tuning) 
 ```
 
 ---
@@ -53,6 +62,14 @@ Coming to this step, you can start to train the cold-start model with one script
 python main.py --dataset [DATASET NAME] --model [MODEL NAME] --cold_object [user/item]
 ```
 In the above script, the **[MODEL NAME]** for --model is the expected model name, where we have provided 20 representative models as the **Supported Models**. You can also flexibly register your own model with the ColdRec framework for evaluation.
+
+**4️⃣ (Option) Automatic Hyper-parameter Tuning**
+
+ColdRec also supports automatic hyper-parameter tuning. You can tune hyper-parameters with optuna with one script:
+``` bash
+python param_search.py --dataset [DATASET NAME] --model [MODEL NAME] --cold_object [user/item]
+```
+You can flexibly set the tuning range in param_search.py.
 
 ---
 
