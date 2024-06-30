@@ -21,9 +21,9 @@ def model_specific_param(model_name, parser):
         parser.add_argument('--self_neg_number', type=int, default=40, help='contrast negative number')
         parser.add_argument('--tau', type=float, default=0.1, help='contrast loss temperature')
         parser.add_argument('--lambda1', type=float, default=0.6, help='collaborative contrast loss weight')
-        parser.add_argument('--attr_present_dim', type=int, default=256, help='the dimension of present')
-        parser.add_argument('--implicit_dim', type=int, default=256, help='the dimension of u/i present')
-        parser.add_argument('--cat_implicit_dim', type=int, default=256, help='the q_v_c dimension')
+        parser.add_argument('--attr_present_dim', type=int, default=64, help='the dimension of present')
+        parser.add_argument('--implicit_dim', type=int, default=64, help='the dimension of u/i present')
+        parser.add_argument('--cat_implicit_dim', type=int, default=64, help='the q_v_c dimension')
         parser.add_argument('--pretrain', type=bool, default=False, help='user/item embedding pre-training')
         parser.add_argument('--pretrain_update', type=bool, default=False, help='u/i pretrain embedding update')
     elif model_name == 'DropoutNet':
