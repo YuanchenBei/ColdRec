@@ -19,7 +19,10 @@
   - [🚀 Quick Start](#-quick-start)
   - [🧸 Supported Models](#-supported-models)
 
-🥳 **Update in 2024.06.30**: Add automatic hyper-parameter tuning, you can install one more base library *optuna* to include this module.
+🔧 **Information in 2024.11**: Thanks for the usage! There are still many problems that can be improved in this codebase, such as the function or unclear descriptions mentioned in the issues. Due to recent busyness, sorry that I am unable to reply carefully to each message one by one. I would like to improve this codebase based on the feedback on the issues in February or March 2025.
+
+
+🥳 **Update in 2024.06**: Add automatic hyper-parameter tuning, you can install one more base library *optuna* to include this module.
 
 ---
 ## 🛫 Requirements
