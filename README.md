@@ -11,16 +11,20 @@
 
 
 # ❄️ ColdRec 🔥
-☃️ **ColdRec** is a comprehensive open-source toolkit and benchmark for cold-start recommendation. In coldrec, models follow a ***unified pipeline***, the datasets follow a ***unified division***, and tasks include ***cold user/item recommendation***, ***warm user/item recommendation***, and ***overall user/item recommendation***, targeting at providing the community with a ***comprehensive*** and ***fair*** benchmark evaluation for cold-start recommendation.
+☃️ **ColdRec** is a comprehensive open-source toolkit for cold-start recommendation. In coldrec, models follow a ***unified pipeline***, the datasets follow a ***unified division***, and tasks include ***cold user/item recommendation***, ***warm user/item recommendation***, and ***overall user/item recommendation***, targeting at providing the community with a comprehensive evaluation for cold-start recommendation.
 
 
 - [❄️ ColdRec 🔥](#️-coldrec-)
   - [🛫 Requirements](#-requirements)
   - [🚀 Quick Start](#-quick-start)
   - [🧸 Supported Models](#-supported-models)
+  - [💐 Acknowledgements](#-acknowledgements)
 
-🔧 **Information in 2024.11**: Thanks for the usage! There are still many problems that can be improved in this codebase, such as the function or unclear descriptions mentioned in the issues. Due to recent busyness, sorry that I am unable to reply carefully to each message one by one. I would like to improve this codebase based on the feedback on the issues in February or March 2025.
-
+🔧 **TODO**
+We are now enhancing the codebase for user-friendly:
+- [ ] Fix bugs and optimize the toolkit efficiency mentioned in the issues. (Thanks for that!)
+- [ ] Add representative new models in 2024-2025. 
+- [x] Toolkit building with related works before 2024.
 
 🥳 **Update in 2024.06**: Add automatic hyper-parameter tuning, you can install one more base library *optuna* to include this module.
 
@@ -99,4 +103,10 @@ You can flexibly set the tuning range in param_search.py.
 | 18     | [GoRec: A Generative Cold-start Recommendation Framework](https://dl.acm.org/doi/abs/10.1145/3581783.3612238)  |   GoRec   | MM 2023 |
 | 19     | [Contrastive Collaborative Filtering for Cold-Start Item Recommendation](https://arxiv.org/pdf/2302.02151)  |   CCFRec   | WWW 2023 |
 | 20     | [Aligning Distillation For Cold-start Item Recommendation](https://dl.acm.org/doi/10.1145/3539618.3591732)  |    ALDI   | SIGIR 2023 |
+
+---
+## 💐 Acknowledgements
+The codebase architecture of ColdRec on some foundational operators is based on the **excellent repo [SelfRec](https://github.com/Coder-Yu/SELFRec)**. Thanks to their pioneering open-sourced work!
+
+The suggestions provided by **open-source community users** are of great help in improving this framework. Thanks to them!
 
