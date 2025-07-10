@@ -107,7 +107,7 @@ You can flexibly set the tuning range in param_search.py.
 
 ---
 ## 💐 Acknowledgements
-The codebase architecture of ColdRec on some foundational operators is based on the **excellent repo [SelfRec](https://github.com/Coder-Yu/SELFRec)**. Thanks to their pioneering open-sourced work!
+The codebase architecture of ColdRec on some foundational operators is based on the **excellent repo [SELFRec](https://github.com/Coder-Yu/SELFRec)**. Thanks to their pioneering open-sourced work!
 
 The suggestions provided by **open-source community users** are of great help in improving this framework. Thanks to them!
 
