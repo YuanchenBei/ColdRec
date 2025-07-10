@@ -81,9 +81,10 @@ You can flexibly set the tuning range in param_search.py.
 ---
 
 ## 🧸 Supported Models
+(* Backbone model)
 | **ID** | **Paper** | **Model** | **Venue** |
 |--------|---------|:----------:|:--------------:|
-| 1      | [BPR: Bayesian Personalized Ranking from Implicit Feedback](https://arxiv.org/pdf/1205.2618) | BPR-MF | UAI 2009 |
+| 1*      | [BPR: Bayesian Personalized Ranking from Implicit Feedback](https://arxiv.org/pdf/1205.2618) | BPR-MF | UAI 2009 |
 | 2      | [Deep Content-based Music Recommendation](https://proceedings.neurips.cc/paper/2013/file/b3ba8f1bee1238a2f37603d90b58898d-Paper.pdf)     |    DeepMusic    |   NeurIPS 2013    |
 | 3     | [Social Collaborative Filtering for Cold-start Recommendations](https://dl.acm.org/doi/10.1145/2645710.2645772)     |    KNN    |   RecSys 2014    |
 | 4      | [Learning Image and User Features for Recommendation in Social Networks](https://openaccess.thecvf.com/content_iccv_2015/papers/Geng_Learning_Image_and_ICCV_2015_paper.pdf) |    DUIF     |   ICCV 2015    |
@@ -91,13 +92,13 @@ You can flexibly set the tuning range in param_search.py.
 | 6     | [DropoutNet: Addressing Cold Start in Recommender Systems](https://papers.nips.cc/paper_files/paper/2017/file/dbd22ba3bd0df8f385bdac3e9f8be207-Paper.pdf)  |   DropoutNet   | NeurIPS 2017 |
 | 7      | [Adversarial Training Towards Robust Multimedia Recommender System](https://arxiv.org/pdf/1809.07062)  |    AMR    |  TKDE 2019  |
 | 8     | [Warm Up Cold-start Advertisements: Improving CTR Predictions via Learning to Learn ID Embeddings](https://dl.acm.org/doi/10.1145/3331184.3331268)  |    MetaEmbedding    | SIGIR 2019 |
-|  9     | [LightGCN: Simplifying and Powering Graph Convolution Network for Recommendation](https://arxiv.org/pdf/2002.02126) | LightGCN | SIGIR 2020 |
+|  9*     | [LightGCN: Simplifying and Powering Graph Convolution Network for Recommendation](https://arxiv.org/pdf/2002.02126) | LightGCN | SIGIR 2020 |
 | 10     | [How to Learn Item Representation for Cold-Start Multimedia Recommendation?](https://dl.acm.org/doi/10.1145/3394171.3413628)  |    MTPR    | MM 2020 |
 | 11     | [LARA: Attribute-to-feature Adversarial Learning for New-item Recommendation](https://ir.sdu.edu.cn/~zhaochunren/papers/7LARAAttribute-to-featureadversariallearningfornew-itemrecommendation.pdf)  |    LARA    | WSDM 2020 |
 | 12     | [Recommendation for New Users and New Items via Randomized Training and Mixture-of-Experts Transformation](https://zziwei.github.io/pubs/Ziwei_SIGIR_2020_Cold.pdf)  |    Heater    | SIGIR 2020 |
 | 13    | [Contrastive Learning for Cold-Start Recommendation](https://arxiv.org/pdf/2107.05315)  |    CLCRec    |  MM 2021 |
-| 14    | [Improving Graph Collaborative Filtering with Neighborhood-enriched Contrastive Learning](https://arxiv.org/pdf/2202.06200)  | NCL     | WWW 2022 |
-| 15    | [Are Graph Augmentations Necessary? Simple Graph Contrastive Learning for Recommendation](https://arxiv.org/pdf/2112.08679)  | SimGCL     | SIGIR 2022 |
+| 14*    | [Improving Graph Collaborative Filtering with Neighborhood-enriched Contrastive Learning](https://arxiv.org/pdf/2202.06200)  | NCL     | WWW 2022 |
+| 15*    | [Are Graph Augmentations Necessary? Simple Graph Contrastive Learning for Recommendation](https://arxiv.org/pdf/2112.08679)  | SimGCL     | SIGIR 2022 |
 | 16     | [Generative Adversarial Framework for Cold-Start Item Recommendation](https://dl.acm.org/doi/abs/10.1145/3477495.3531897)  |    GAR   | SIGIR 2022 |
 | 17     |  [XSimGCL: Towards Extremely Simple Graph Contrastive Learning for Recommendation](https://arxiv.org/pdf/2209.02544) |  XSimGCL  |   TKDE 2023 |
 | 18     | [GoRec: A Generative Cold-start Recommendation Framework](https://dl.acm.org/doi/abs/10.1145/3581783.3612238)  |   GoRec   | MM 2023 |
