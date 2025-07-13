@@ -1,7 +1,7 @@
 import sys
 sys.path.append('..')
 from util.databuilder import DataBuilder, ColdStartDataBuilder
-from util.operator import find_k_largest
+from util.operator import find_k_largest, batch_find_k_largest
 from util.evaluator import ranking_evaluation
 import time
 
@@ -53,8 +53,44 @@ class BaseColdStartTrainer(object):
     def predict(self, u):
         pass
 
+    def batch_predict(self, users):
+        raise NotImplementedError("batch_predict is not implemented")
+
     def save(self):
         pass
+
+    def batch_valid(self, valid_type='all'):
+        if valid_type == 'warm':
+            valid_set = self.data.warm_valid_set
+        elif valid_type == 'cold':
+            valid_set = self.data.cold_valid_set
+        elif valid_type == 'all':
+            valid_set = self.data.overall_valid_set
+        else:
+            raise ValueError('Invalid valid type!')
+
+        rec_list = {}
+        batch_size = 10000
+        for i in range(0, len(valid_set), batch_size):
+            batch_users = list(valid_set.keys())[i:i + batch_size]
+            batch_candidates = self.batch_predict(batch_users)
+            for j, user in enumerate(batch_users):
+                candidates = batch_candidates[j]
+                rated_list = list(self.data.training_set_u[user].keys())
+                if len(rated_list) != 0:
+                    candidates[self.data.get_item_id_list(rated_list)] = -10e8
+
+            if valid_type == 'warm' and self.args.cold_object == 'item':
+                batch_candidates[:, self.data.mapped_cold_item_idx] = -10e8
+            elif valid_type == 'cold' and self.args.cold_object == 'item':
+                batch_candidates[:, self.data.mapped_warm_item_idx] = -10e8
+
+            batch_ids, batch_scores = batch_find_k_largest(self.max_N, batch_candidates)
+
+            for user, ids, scores in zip(batch_users, batch_ids, batch_scores, strict=True):
+                item_names = [self.data.id2item[iid] for iid in ids]
+                rec_list[user] = list(zip(item_names, scores, strict=True))
+        return rec_list
 
     def valid(self, valid_type='all'):
         def process_bar(num, total):
@@ -160,7 +196,10 @@ class BaseColdStartTrainer(object):
         else:
             raise ValueError('Invalid evaluation type!')
         print(f'Evaluating the model under the {valid_type} setting...')
-        rec_list = self.valid(valid_type)
+        try:
+            rec_list = self.batch_valid(valid_type)
+        except NotImplementedError:
+            rec_list = self.valid(valid_type)
         measure, _ = ranking_evaluation(valid_set, rec_list, [self.max_N])
         if len(self.bestPerformance) > 0:
             count = 0
