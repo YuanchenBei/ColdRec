@@ -22,8 +22,8 @@
 
 🔧 **TODO**
 We are now enhancing the codebase for user-friendly:
-- [ ] Fix bugs and optimize the toolkit efficiency mentioned in the issues. (Thanks for that!)
 - [ ] Add representative new models in 2024-2025. 
+- [ ] Fix bugs and optimize the toolkit efficiency mentioned in the issues. (Thanks for that!)
 - [x] Toolkit building with related works before 2024.
 
 🥳 **Update in 2024.06**: Add automatic hyper-parameter tuning, you can install one more base library *optuna* to include this module.
@@ -52,7 +52,7 @@ We have provided the preprocessed datasets in [Google Drive](https://drive.googl
 
 **2️⃣ Warm Embedding Pre-Training**
 
-This step is *not necessary*, but since most of the work requires this step, it is *recommended* to complete this step to fully evaluate all models. We have provided both widely adopted collaborative filtering modle MF and graph-based model LightGCN as warm recommender. You can obtain the pre-trained warm user/item embeddings with the following two options:
+This step is *not necessary*, but since most of the work requires this step, it is *recommended* to complete this step to fully evaluate all models. We have provided both widely adopted collaborative filtering models as warm recommenders. You can obtain the pre-trained warm user/item embeddings with the following two options:
 
 ***Options 1:*** You can directly access the BPR-MF pre-trained embeddings at the [Google Drive](https://drive.google.com/drive/folders/1cHTWgNGTlWJwO2ziS4crxkpuH38rTeCf?usp=sharing). Then, the embedding folder associated to each dataset should be placed in the ***./emb*** folder.
 
@@ -60,7 +60,7 @@ This step is *not necessary*, but since most of the work requires this step, it 
 ``` bash
 python main.py --dataset [DATASET NAME] --model [WARM RECOMMENDER] --cold_object [user/item]
 ```
-In the above script, the **[DATASET NAME]** for --dataset should be replaced by your target dataset name, such as movielens. Then, the **[WARM RECOMMENDER]** for --model should be selected as the warm recommender type (MF, LightGCN, NCL, SimGCL, and XSimGCL). Finally, the **[user/item]** for --cold_object should be selected as user or item for the user cold-start setting or item cold-start setting.
+In the above script, the **[DATASET NAME]** for --dataset should be replaced by your target dataset name, such as movielens. Then, the **[WARM RECOMMENDER]** for --model should be selected as the warm recommender type (MF, NGCF, LightGCN, NCL, SimGCL, and XSimGCL). Finally, the **[user/item]** for --cold_object should be selected as user or item for the user cold-start setting or item cold-start setting.
 
 **3️⃣ Cold-Start Model Training and Evaluation**
 
@@ -91,19 +91,20 @@ You can flexibly set the tuning range in param_search.py.
 | 5      | [VBPR: Visual Bayesian Personalized Ranking from Implicit Feedback](https://ojs.aaai.org/index.php/AAAI/article/view/9973)  |   VBPR   |    AAAI 2016    |
 | 6     | [DropoutNet: Addressing Cold Start in Recommender Systems](https://papers.nips.cc/paper_files/paper/2017/file/dbd22ba3bd0df8f385bdac3e9f8be207-Paper.pdf)  |   DropoutNet   | NeurIPS 2017 |
 | 7      | [Adversarial Training Towards Robust Multimedia Recommender System](https://arxiv.org/pdf/1809.07062)  |    AMR    |  TKDE 2019  |
-| 8     | [Warm Up Cold-start Advertisements: Improving CTR Predictions via Learning to Learn ID Embeddings](https://dl.acm.org/doi/10.1145/3331184.3331268)  |    MetaEmbedding    | SIGIR 2019 |
-|  9*     | [LightGCN: Simplifying and Powering Graph Convolution Network for Recommendation](https://arxiv.org/pdf/2002.02126) | LightGCN | SIGIR 2020 |
-| 10     | [How to Learn Item Representation for Cold-Start Multimedia Recommendation?](https://dl.acm.org/doi/10.1145/3394171.3413628)  |    MTPR    | MM 2020 |
-| 11     | [LARA: Attribute-to-feature Adversarial Learning for New-item Recommendation](https://ir.sdu.edu.cn/~zhaochunren/papers/7LARAAttribute-to-featureadversariallearningfornew-itemrecommendation.pdf)  |    LARA    | WSDM 2020 |
-| 12     | [Recommendation for New Users and New Items via Randomized Training and Mixture-of-Experts Transformation](https://zziwei.github.io/pubs/Ziwei_SIGIR_2020_Cold.pdf)  |    Heater    | SIGIR 2020 |
-| 13    | [Contrastive Learning for Cold-Start Recommendation](https://arxiv.org/pdf/2107.05315)  |    CLCRec    |  MM 2021 |
-| 14*    | [Improving Graph Collaborative Filtering with Neighborhood-enriched Contrastive Learning](https://arxiv.org/pdf/2202.06200)  | NCL     | WWW 2022 |
-| 15*    | [Are Graph Augmentations Necessary? Simple Graph Contrastive Learning for Recommendation](https://arxiv.org/pdf/2112.08679)  | SimGCL     | SIGIR 2022 |
-| 16     | [Generative Adversarial Framework for Cold-Start Item Recommendation](https://dl.acm.org/doi/abs/10.1145/3477495.3531897)  |    GAR   | SIGIR 2022 |
-| 17     |  [XSimGCL: Towards Extremely Simple Graph Contrastive Learning for Recommendation](https://arxiv.org/pdf/2209.02544) |  XSimGCL  |   TKDE 2023 |
-| 18     | [GoRec: A Generative Cold-start Recommendation Framework](https://dl.acm.org/doi/abs/10.1145/3581783.3612238)  |   GoRec   | MM 2023 |
-| 19     | [Contrastive Collaborative Filtering for Cold-Start Item Recommendation](https://arxiv.org/pdf/2302.02151)  |   CCFRec   | WWW 2023 |
-| 20     | [Aligning Distillation For Cold-start Item Recommendation](https://dl.acm.org/doi/10.1145/3539618.3591732)  |    ALDI   | SIGIR 2023 |
+| 8*     | [Neural Graph Collaborative Filtering](https://arxiv.org/pdf/1905.08108) | NGCF | SIGIR 2019 |
+| 9     | [Warm Up Cold-start Advertisements: Improving CTR Predictions via Learning to Learn ID Embeddings](https://dl.acm.org/doi/10.1145/3331184.3331268)  |    MetaEmbedding    | SIGIR 2019 |
+|  10*     | [LightGCN: Simplifying and Powering Graph Convolution Network for Recommendation](https://arxiv.org/pdf/2002.02126) | LightGCN | SIGIR 2020 |
+| 11     | [How to Learn Item Representation for Cold-Start Multimedia Recommendation?](https://dl.acm.org/doi/10.1145/3394171.3413628)  |    MTPR    | MM 2020 |
+| 12     | [LARA: Attribute-to-feature Adversarial Learning for New-item Recommendation](https://ir.sdu.edu.cn/~zhaochunren/papers/7LARAAttribute-to-featureadversariallearningfornew-itemrecommendation.pdf)  |    LARA    | WSDM 2020 |
+| 13     | [Recommendation for New Users and New Items via Randomized Training and Mixture-of-Experts Transformation](https://zziwei.github.io/pubs/Ziwei_SIGIR_2020_Cold.pdf)  |    Heater    | SIGIR 2020 |
+| 14    | [Contrastive Learning for Cold-Start Recommendation](https://arxiv.org/pdf/2107.05315)  |    CLCRec    |  MM 2021 |
+| 15*    | [Improving Graph Collaborative Filtering with Neighborhood-enriched Contrastive Learning](https://arxiv.org/pdf/2202.06200)  | NCL     | WWW 2022 |
+| 16*    | [Are Graph Augmentations Necessary? Simple Graph Contrastive Learning for Recommendation](https://arxiv.org/pdf/2112.08679)  | SimGCL     | SIGIR 2022 |
+| 17     | [Generative Adversarial Framework for Cold-Start Item Recommendation](https://dl.acm.org/doi/abs/10.1145/3477495.3531897)  |    GAR   | SIGIR 2022 |
+| 18     |  [XSimGCL: Towards Extremely Simple Graph Contrastive Learning for Recommendation](https://arxiv.org/pdf/2209.02544) |  XSimGCL  |   TKDE 2023 |
+| 19     | [GoRec: A Generative Cold-start Recommendation Framework](https://dl.acm.org/doi/abs/10.1145/3581783.3612238)  |   GoRec   | MM 2023 |
+| 20     | [Contrastive Collaborative Filtering for Cold-Start Item Recommendation](https://arxiv.org/pdf/2302.02151)  |   CCFRec   | WWW 2023 |
+| 21     | [Aligning Distillation For Cold-start Item Recommendation](https://dl.acm.org/doi/10.1145/3539618.3591732)  |    ALDI   | SIGIR 2023 |
 
 ---
 ## 💐 Acknowledgements
