@@ -30,6 +30,10 @@ class BaseColdStartTrainer(object):
         self.reg = args.reg
         self.device = device
         self.result = []
+        self.early_stop_flag = False if args.early_stop == 0 else True
+        if self.early_stop_flag:
+            self.early_stop_patience = args.early_stop
+            self.max_early_stop_patience = args.early_stop
 
     def print_basic_info(self):
         print('*' * 80)
@@ -216,6 +220,11 @@ class BaseColdStartTrainer(object):
                 self.bestPerformance[1] = performance
                 self.bestPerformance[0] = epoch + 1
                 self.save()
+                if self.early_stop_flag:
+                    self.early_stop_patience = self.max_early_stop_patience
+            else:
+                if self.early_stop_flag:
+                    self.early_stop_patience -= 1
         else:
             self.bestPerformance.append(epoch + 1)
             performance = {}
@@ -236,6 +245,11 @@ class BaseColdStartTrainer(object):
         bp += 'NDCG' + ':' + str(self.bestPerformance[1]['NDCG'])
         print(f'*Best {valid_type} Performance* ')
         print('Epoch:', str(self.bestPerformance[0]) + ',', bp)
+        if self.early_stop_flag:
+            if self.early_stop_patience <= 0:
+                print(f"Stopping early at epoch {epoch + 1}.")
+            else:
+                print(f"Early stopping patience left: {self.early_stop_patience}.")
         print('-' * 120)
         return measure
 
@@ -389,6 +403,11 @@ class BaseTrainer(object):
         bp += 'NDCG' + ':' + str(self.bestPerformance[1]['NDCG'])
         print('*Best Performance* ')
         print('Epoch:', str(self.bestPerformance[0]) + ',', bp)
+        if self.early_stop_flag:
+            if self.early_stop_patience <= 0:
+                print(f"Stopping early at epoch {epoch + 1}.")
+            else:
+                print(f"Early stopping patience left: {self.early_stop_patience}.")
         print('-' * 120)
         return measure
 

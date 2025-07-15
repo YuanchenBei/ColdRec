@@ -51,6 +51,8 @@ def model_specific_param(model_name, parser):
         parser.add_argument('--p_emb', type=list, default=[0.05, 0], help='lr and reg for id embeddings')
         parser.add_argument('--p_ctx', type=list, default=[0.05, 0.01], help='lr and reg for context features')
         parser.add_argument('--p_proj', type=list, default=[0.05, 0.01], help='lr and reg for wei only')
+    elif model_name == 'MF' or model_name == 'NGCF' or model_name == 'LightGCN':
+        pass
     else:
         raise Exception("The model name not found.")
 

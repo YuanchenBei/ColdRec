@@ -1,4 +1,5 @@
 from model.MF import MF
+from model.NGCF import NGCF
 from model.LightGCN import LightGCN
 from model.KNN import KNN
 from model.DUIF import DUIF
