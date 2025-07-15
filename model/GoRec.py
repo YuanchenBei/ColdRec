@@ -69,6 +69,9 @@ class GoRec(BaseColdStartTrainer):
                 if epoch % 5 == 0:
                     model.eval()
                     self.fast_evaluation(epoch, valid_type='all')
+                    if self.early_stop_flag:
+                        if self.early_stop_patience <= 0:
+                            break
 
         self.timer(start=False)
         model.eval()
