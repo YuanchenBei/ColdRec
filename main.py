@@ -27,7 +27,11 @@ if __name__ == '__main__':
     parser.add_argument('--backbone', default='MF')
     parser.add_argument('--early_stop', type=int, default=10, help='Early stopping patience. If set to 0, early stopping is disabled.')
     args, _ = parser.parse_known_args()
-    parser = model_specific_param(args.model, parser)
+    # model register
+    available_models = ['MF', 'NGCF', 'LightGCN', 'SimGCL', 'XSimGCL', 'NCL', 'KNN', 'DUIF', 'DeepMusic', 'MTPR',
+                        'VBPR', 'AMR', 'GAR', 'ALDI', 'CLCRec', 'LARA', 'CCFCRec', 'DropoutNet', 'Heater',
+                        'MetaEmbedding', 'GoRec']
+    parser = model_specific_param(args.model, parser, available_models)
     args = parser.parse_args()
     print(args)
 
@@ -83,10 +87,6 @@ if __name__ == '__main__':
             set_seed(args.seed, args.use_gpu)
         else:
             set_seed(round, args.use_gpu)
-        # model register
-        available_models = ['MF', 'NGCF', 'LightGCN', 'SimGCL', 'XSimGCL', 'NCL', 'KNN', 'DUIF', 'DeepMusic', 'MTPR',
-                            'VBPR', 'AMR', 'GAR', 'ALDI', 'CLCRec', 'LARA', 'CCFCRec', 'DropoutNet', 'Heater',
-                            'MetaEmbedding', 'GoRec']
         if args.model in available_models:
             if args.model == 'MF' or args.model == 'NGCF' or args.model == 'LightGCN' or args.model == 'SimGCL' \
                     or args.model == 'XSimGCL' or args.model == 'NCL':
