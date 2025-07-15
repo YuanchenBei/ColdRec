@@ -103,6 +103,16 @@ class ALDI(BaseColdStartTrainer):
             score[self.data.mapped_warm_item_idx] = torch.matmul(self.warm_user_emb[u], self.item_emb[self.data.mapped_warm_item_idx].transpose(0, 1))
             score[self.data.mapped_cold_item_idx] = torch.matmul(self.cold_user_emb[u], self.item_emb[self.data.mapped_cold_item_idx].transpose(0, 1))
             return score.cpu().numpy()
+    
+    def batch_predict(self, users):
+        score = torch.zeros(self.data.item_num, dtype=torch.float32).to(self.device)
+        with torch.no_grad():
+            users = self.data.get_user_id_list(users)
+            users = torch.tensor(users, device=self.device)
+            #score = torch.matmul(self.user_emb[users], self.item_emb.transpose(0, 1))
+            score[self.data.mapped_warm_item_idx] = torch.matmul(self.warm_user_emb[users], self.item_emb[self.data.mapped_warm_item_idx].transpose(0, 1))
+            score[self.data.mapped_cold_item_idx] = torch.matmul(self.cold_user_emb[users], self.item_emb[self.data.mapped_cold_item_idx].transpose(0, 1))
+            return score.cpu().numpy()
 
 
 class ALDI_Learner(nn.Module):
