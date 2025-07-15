@@ -43,6 +43,9 @@ class VBPR(BaseColdStartTrainer):
                 self.user_emb_main, self.item_emb_main, self.user_emb_aux, self.item_emb_aux, self.w_value = self.model()
                 if epoch % 5 == 0:
                     self.fast_evaluation(epoch, valid_type='all')
+                    if self.early_stop_flag:
+                        if self.early_stop_patience <= 0:
+                            break
 
         self.timer(start=False)
         model.eval()
