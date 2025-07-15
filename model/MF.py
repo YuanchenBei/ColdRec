@@ -56,6 +56,13 @@ class MF(BaseColdStartTrainer):
             u = self.data.get_user_id(u)
             score = torch.matmul(self.user_emb[u], self.item_emb.transpose(0, 1))
             return score.cpu().numpy()
+    
+    def batch_predict(self, users):
+        with torch.no_grad():
+            users = self.data.get_user_id_list(users)
+            users = torch.tensor(users, device=self.device)
+            score = torch.matmul(self.user_emb[users], self.item_emb.transpose(0, 1))
+            return score.cpu().numpy()
 
 
 class Matrix_Factorization(nn.Module):
