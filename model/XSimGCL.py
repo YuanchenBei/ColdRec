@@ -65,9 +65,17 @@ class XSimGCL(BaseColdStartTrainer):
             self.best_user_emb, self.best_item_emb = self.model.forward()
 
     def predict(self, u):
-        u = self.data.get_user_id(u)
-        score = torch.matmul(self.user_emb[u], self.item_emb.transpose(0, 1))
-        return score.cpu().numpy()
+        with torch.no_grad():
+            u = self.data.get_user_id(u)
+            score = torch.matmul(self.user_emb[u], self.item_emb.transpose(0, 1))
+            return score.cpu().numpy()
+    
+    def batch_predict(self, users):
+        with torch.no_grad():
+            users = self.data.get_user_id_list(users)
+            users = torch.tensor(users, device=self.device)
+            score = torch.matmul(self.user_emb[users], self.item_emb.transpose(0, 1))
+            return score.cpu().numpy()
 
 
 class XSimGCL_Encoder(nn.Module):

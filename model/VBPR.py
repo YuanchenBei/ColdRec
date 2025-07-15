@@ -68,6 +68,15 @@ class VBPR(BaseColdStartTrainer):
             score2 = torch.matmul(self.user_emb_aux[u], self.item_emb_aux.transpose(0, 1))
             score = score1 + score2
             return score.cpu().numpy()
+    
+    def batch_predict(self, users):
+        with torch.no_grad():
+            users = self.data.get_user_id_list(users)
+            users = torch.tensor(users, device=self.device)
+            score1 = torch.matmul(self.user_emb_main[users], self.item_emb_main.transpose(0, 1))
+            score2 = torch.matmul(self.user_emb_aux[users], self.item_emb_aux.transpose(0, 1))
+            score = score1 + score2
+            return score.cpu().numpy()
 
 
 class VBPR_Learner(nn.Module):
