@@ -74,6 +74,9 @@ class ALDI(BaseColdStartTrainer):
                 self.item_emb.data[self.data.mapped_cold_item_idx] = cold_item_gen_emb
                 if epoch % 5 == 0:
                     self.fast_evaluation(epoch, valid_type='all')
+                    if self.early_stop_flag:
+                        if self.early_stop_patience <= 0:
+                            break
 
         self.timer(start=False)
         model.eval()
