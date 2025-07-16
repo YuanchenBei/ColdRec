@@ -9,6 +9,8 @@ class ColdStartDataBuilder(object):
                  warm_user_idx, warm_item_idx, cold_user_idx, cold_item_idx,
                  user_content=None, item_content=None):
         super(ColdStartDataBuilder, self).__init__()
+        self.user_num = user_num
+        self.item_num = item_num
         self.training_data = training_data
         self.warm_valid_data = warm_valid_data
         self.warm_test_data = warm_test_data
@@ -22,6 +24,7 @@ class ColdStartDataBuilder(object):
         self.id2user = {}
         self.id2item = {}
         self.training_set_u = defaultdict(dict)
+        self.training_set_uid = None
         self.training_set_i = defaultdict(dict)
         self.warm_valid_set = defaultdict(dict)
         self.warm_valid_set_item = set()
@@ -50,8 +53,6 @@ class ColdStartDataBuilder(object):
 
         self.generate_set()
 
-        self.user_num = user_num
-        self.item_num = item_num
         #print(self.item_num, len(self.item.keys()))
         #raise Exception("debugging...")
         # PLEASE NOTE: the original and mapped index are different!
@@ -86,6 +87,14 @@ class ColdStartDataBuilder(object):
                 # userList.append
             self.training_set_u[user][item] = rating
             self.training_set_i[item][user] = rating
+
+        # Stores user-item interactions in a NumPy array of sets for fast negative sampling.
+        # Note: Indexed by mapped user IDs (`uid`) to handle non-sequential original IDs.
+        self.training_set_uid = np.array([set() for _ in range(self.user_num)])
+        for u, uid in self.user.items():
+            items = self.training_set_u[u]
+            temp_set = self.training_set_uid[uid] | set(items)
+            self.training_set_uid[uid] = temp_set
 
         # warm validation set building
         for entry in self.warm_valid_data:

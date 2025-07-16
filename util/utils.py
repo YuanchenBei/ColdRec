@@ -120,11 +120,12 @@ def kl_divergence(p_logit, q_logit):
     return torch.mean(kl)
 
 
-def next_batch_pairwise(data,batch_size,n_negs=1):
+def next_batch_pairwise(data, batch_size, n_negs=1):
     training_data = data.training_data
-    shuffle(training_data)
+    np.random.shuffle(training_data)
     ptr = 0
     data_size = len(training_data)
+    item_list = list(data.item.keys())
     while ptr < data_size:
         if ptr + batch_size < data_size:
             batch_end = ptr + batch_size
@@ -133,16 +134,27 @@ def next_batch_pairwise(data,batch_size,n_negs=1):
         users = [training_data[idx][0] for idx in range(ptr, batch_end)]
         items = [training_data[idx][1] for idx in range(ptr, batch_end)]
         ptr = batch_end
-        u_idx, i_idx, j_idx = [], [], []
-        item_list = list(data.item.keys())
-        for i, user in enumerate(users):
-            i_idx.append(data.item[items[i]])
-            u_idx.append(data.user[user])
-            for m in range(n_negs):
-                neg_item = choice(item_list)
-                while neg_item in data.training_set_u[user]:
-                    neg_item = choice(item_list)
-                j_idx.append(data.item[neg_item])
+        total_num = len(users)
+        u_idx = np.array([data.user[x] for x in users])
+        value_ids = np.zeros(total_num, dtype=type(item_list[0]))
+        check_list = np.arange(total_num)
+        while len(check_list) > 0:
+            value_ids[check_list] = np.random.choice(item_list, size=len(check_list))
+            check_list = np.array(
+                [
+                    i
+                    for i, used, v in zip(
+                        check_list,
+                        data.training_set_uid[u_idx[check_list]],
+                        value_ids[check_list],
+                        strict=True
+                    )
+                    if v in used
+                ]
+            )
+        u_idx = u_idx.tolist()
+        i_idx = [data.item[x] for x in items]
+        j_idx = [data.item[x] for x in value_ids]
         yield u_idx, i_idx, j_idx
 
 
