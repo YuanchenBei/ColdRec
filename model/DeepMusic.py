@@ -86,7 +86,7 @@ class DeepMusic(BaseColdStartTrainer):
             users = self.data.get_user_id_list(users)
             users = torch.tensor(users, device=self.device)
             score = torch.matmul(self.user_emb[users], self.item_emb.transpose(0, 1))
-            return score.cpu().numpy()
+            return score
 
 
 class DeepMusic_Encoder(nn.Module):
