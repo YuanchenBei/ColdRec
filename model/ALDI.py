@@ -112,7 +112,7 @@ class ALDI(BaseColdStartTrainer):
             #score = torch.matmul(self.user_emb[users], self.item_emb.transpose(0, 1))
             score[self.data.mapped_warm_item_idx] = torch.matmul(self.warm_user_emb[users], self.item_emb[self.data.mapped_warm_item_idx].transpose(0, 1))
             score[self.data.mapped_cold_item_idx] = torch.matmul(self.cold_user_emb[users], self.item_emb[self.data.mapped_cold_item_idx].transpose(0, 1))
-            return score.cpu().numpy()
+            return score
 
 
 class ALDI_Learner(nn.Module):

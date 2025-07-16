@@ -77,7 +77,7 @@ class AMR(BaseColdStartTrainer):
             score2 = torch.matmul(self.user_emb_aux[users], self.item_emb_aux.transpose(0, 1))
             #score = torch.matmul(self.user_emb[users], self.item_emb.transpose(0, 1))
             score = score1 + score2
-            return score.cpu().numpy()
+            return score
 
 
 class AMR_Learner(nn.Module):
