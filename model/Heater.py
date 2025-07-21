@@ -89,7 +89,7 @@ class Heater_Learner(nn.Module):
         else:
             self.user_content = torch.tensor(self.data.mapped_user_content, dtype=torch.float32, requires_grad=False).to(device)
         self.embedding_dict = self._init_model()
-        self.heater_encoder = Heater_encoder(self.latent_size, 0, self.content_dim, [200, 64], self.latent_size,
+        self.heater_encoder = Heater_encoder(self.latent_size, 0, self.content_dim, [200, self.latent_size], self.latent_size,
                                              self.args.alpha, self.args.n_expert, self.args.n_dropout)
         self.embedding_dict = self._init_model()
 
