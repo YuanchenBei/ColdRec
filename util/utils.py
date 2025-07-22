@@ -1,4 +1,4 @@
-from random import shuffle,randint,choice,sample
+from random import shuffle,choice
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
@@ -277,4 +277,13 @@ def set_seed(seed, cuda):
         torch.cuda.manual_seed(seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
+
+
+def process_bar(num, total):
+    rate = float(num) / total
+    ratenum = int(50 * rate)
+    r = '\rProgress: [{}{}]{}%'.format('+' * ratenum, ' ' * (50 - ratenum), ratenum*2)
+    import sys
+    sys.stdout.write(r)
+    sys.stdout.flush()
 

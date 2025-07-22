@@ -6,8 +6,56 @@ from util.loader import DataLoader
 from util.utils import set_seed
 from config.model_param import model_specific_param
 from model_imports import *
+from util.databuilder import ColdStartDataBuilder
 
-if __name__ == '__main__':
+class Config:
+    def __init__(self, args):
+        self.args = args
+        self.device = torch.device("cuda:%d" % (args.gpu_id) if (torch.cuda.is_available() and args.use_gpu) else "cpu")
+        
+        # Load data
+        training_data = DataLoader.load_data_set(f'./data/{args.dataset}/cold_{args.cold_object}/warm_train.csv')
+        all_valid_data = DataLoader.load_data_set(f'./data/{args.dataset}/cold_{args.cold_object}/overall_val.csv')
+        warm_valid_data = DataLoader.load_data_set(f'./data/{args.dataset}/cold_{args.cold_object}/warm_val.csv')
+        cold_valid_data = DataLoader.load_data_set(f'./data/{args.dataset}/cold_{args.cold_object}/cold_{args.cold_object}_val.csv')
+        all_test_data = DataLoader.load_data_set(f'./data/{args.dataset}/cold_{args.cold_object}/overall_test.csv')
+        warm_test_data = DataLoader.load_data_set(f'./data/{args.dataset}/cold_{args.cold_object}/warm_test.csv')
+        cold_test_data = DataLoader.load_data_set(f'./data/{args.dataset}/cold_{args.cold_object}/cold_{args.cold_object}_test.csv')
+
+        # Dataset information
+        data_info_dict = pickle.load(open(f'./data/{args.dataset}/cold_{args.cold_object}/info_dict.pkl', 'rb'))
+        user_num = data_info_dict['user_num']
+        item_num = data_info_dict['item_num']
+        warm_user_idx = data_info_dict['warm_user']
+        warm_item_idx = data_info_dict['warm_item']
+        cold_user_idx = data_info_dict['cold_user']
+        cold_item_idx = data_info_dict['cold_item']
+        print(f"Dataset: {args.dataset}, User num: {user_num}, Item num: {item_num}.")
+
+        # Content obtaining
+        user_content, item_content = None, None
+        if args.cold_object == 'user':
+            user_content = np.load(f'./data/{args.dataset}/{args.dataset}_{args.cold_object}_content.npy')
+            print(f'user content shape: {user_content.shape}')
+        if args.cold_object == 'item':
+            item_content = np.load(f'./data/{args.dataset}/{args.dataset}_{args.cold_object}_content.npy')
+            print(f'item content shape: {item_content.shape}')
+            
+        self.data = ColdStartDataBuilder(training_data, warm_valid_data, cold_valid_data, all_valid_data,
+                                     warm_test_data, cold_test_data, all_test_data, user_num, item_num,
+                                     warm_user_idx, warm_item_idx, cold_user_idx, cold_item_idx,
+                                     user_content, item_content)
+
+def model_factory(config):
+    model_name = config.args.model
+    if model_name not in AVAILABLE_MODELS:
+        raise ValueError(f"Invalid model name: {model_name}!")
+    
+    model_class = globals()[model_name]
+    return model_class(config)
+
+
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', default='citeulike')
     parser.add_argument('--model', default='MF')
@@ -27,136 +75,58 @@ if __name__ == '__main__':
     parser.add_argument('--backbone', default='MF')
     parser.add_argument('--early_stop', type=int, default=10, help='Early stopping patience. If set to 0, early stopping is disabled.')
     args, _ = parser.parse_known_args()
-    # model register
-    available_models = ['MF', 'NGCF', 'LightGCN', 'SimGCL', 'XSimGCL', 'NCL', 'KNN', 'DUIF', 'DeepMusic', 'MTPR',
-                        'VBPR', 'AMR', 'GAR', 'ALDI', 'CLCRec', 'LARA', 'CCFCRec', 'DropoutNet', 'Heater',
-                        'MetaEmbedding', 'GoRec']
-    parser = model_specific_param(args.model, parser, available_models)
-    args = parser.parse_args()
+    parser = model_specific_param(args.model, parser, AVAILABLE_MODELS)
+    return parser.parse_args()
+
+AVAILABLE_MODELS = ['MF', 'NGCF', 'LightGCN', 'SimGCL', 'XSimGCL', 'NCL', 'KNN', 'DUIF', 'DeepMusic', 'MTPR',
+                    'VBPR', 'AMR', 'GAR', 'ALDI', 'CLCRec', 'LARA', 'CCFCRec', 'DropoutNet', 'Heater',
+                    'MetaEmbedding', 'GoRec']
+
+if __name__ == '__main__':
+    args = parse_args()
     print(args)
-
-    device = torch.device("cuda:%d" % (args.gpu_id) if (torch.cuda.is_available() and args.use_gpu) else "cpu")
-    # data loader
-    training_data = DataLoader.load_data_set(f'./data/{args.dataset}/cold_{args.cold_object}/warm_train.csv')
-    # following the widely used setting in previous works, the 'all' set is used for validation.
-    all_valid_data = DataLoader.load_data_set(f'./data/{args.dataset}/cold_{args.cold_object}/overall_val.csv')
-    warm_valid_data = DataLoader.load_data_set(f'./data/{args.dataset}/cold_{args.cold_object}/warm_val.csv')
-    cold_valid_data = DataLoader.load_data_set(f'./data/{args.dataset}/cold_{args.cold_object}/cold_{args.cold_object}_val.csv')
-    all_test_data = DataLoader.load_data_set(f'./data/{args.dataset}/cold_{args.cold_object}/overall_test.csv')
-    warm_test_data = DataLoader.load_data_set(f'./data/{args.dataset}/cold_{args.cold_object}/warm_test.csv')
-    cold_test_data = DataLoader.load_data_set(f'./data/{args.dataset}/cold_{args.cold_object}/cold_{args.cold_object}_test.csv')
-
-    # dataset information
-    data_info_dict = pickle.load(open(f'./data/{args.dataset}/cold_{args.cold_object}/info_dict.pkl', 'rb'))
-    user_num = data_info_dict['user_num']
-    item_num = data_info_dict['item_num']
-    warm_user_idx = data_info_dict['warm_user']
-    warm_item_idx = data_info_dict['warm_item']
-    cold_user_idx = data_info_dict['cold_user']
-    cold_item_idx = data_info_dict['cold_item']
-    print(f"Dataset: {args.dataset}, User num: {user_num}, Item num: {item_num}.")
-
-    # content obtaining
-    user_content, item_content = None, None
-    if args.cold_object == 'user':
-        user_content = np.load(f'./data/{args.dataset}/{args.dataset}_{args.cold_object}_content.npy')
-        print(f'user content shape: {user_content.shape}')
-    if args.cold_object == 'item':
-        item_content = np.load(f'./data/{args.dataset}/{args.dataset}_{args.cold_object}_content.npy')
-        print(f'item content shape: {item_content.shape}')
+    
+    config = Config(args)
 
     top_Ns = args.topN.split(',')
-    all_hit_results = [[] for _ in top_Ns]
-    all_precision_results = [[] for _ in top_Ns]
-    all_recall_results = [[] for _ in top_Ns]
-    all_ndcg_results = [[] for _ in top_Ns]
-    cold_hit_results = [[] for _ in top_Ns]
-    cold_precision_results = [[] for _ in top_Ns]
-    cold_recall_results = [[] for _ in top_Ns]
-    cold_ndcg_results = [[] for _ in top_Ns]
-    warm_hit_results = [[] for _ in top_Ns]
-    warm_precision_results = [[] for _ in top_Ns]
-    warm_recall_results = [[] for _ in top_Ns]
-    warm_ndcg_results = [[] for _ in top_Ns]
+    results = {setting: {metric: [[] for _ in top_Ns] for metric in ['hit', 'precision', 'recall', 'ndcg']} for setting in ['all', 'cold', 'warm']}
+    
     time_results = []
 
-    for round in range(args.runs):
-        print(f"Start round {round} running!")
+    for round_num in range(args.runs):
+        print(f"Start round {round_num} running!")
 
-        if args.runs == 1:
-            set_seed(args.seed, args.use_gpu)
-        else:
-            set_seed(round, args.use_gpu)
-        if args.model in available_models:
-            if args.model == 'MF' or args.model == 'NGCF' or args.model == 'LightGCN' or args.model == 'SimGCL' \
-                    or args.model == 'XSimGCL' or args.model == 'NCL':
-                # recommender backbone training
-                model = eval(args.model)(args, training_data, warm_valid_data, cold_valid_data, all_valid_data,
-                                         warm_test_data, cold_test_data, all_test_data, user_num, item_num,
-                                         warm_user_idx, warm_item_idx, cold_user_idx, cold_item_idx, device)
-            else:
-                # cold-start model training
-                model = eval(args.model)(args, training_data, warm_valid_data, cold_valid_data, all_valid_data,
-                                         warm_test_data, cold_test_data, all_test_data, user_num, item_num,
-                                         warm_user_idx, warm_item_idx, cold_user_idx, cold_item_idx, device,
-                                         user_content=user_content, item_content=item_content)
-            print(f"Registered model: {args.model}.")
-        else:
-            raise ValueError(f"Invalid model name: {args.model}!")
+        seed = args.seed if args.runs == 1 else round_num
+        set_seed(seed, args.use_gpu)
+            
+        model = model_factory(config)
+        print(f"Registered model: {args.model}.")
 
-        # model running
         model.run()
 
-        # results recording
+        # Results recording
         for i in range(len(top_Ns)):
-            all_hit_results[i].append(model.overall_test_results[i][0])
-            all_precision_results[i].append(model.overall_test_results[i][1])
-            all_recall_results[i].append(model.overall_test_results[i][2])
-            all_ndcg_results[i].append(model.overall_test_results[i][3])
+            for setting, test_results in [('all', model.overall_test_results), ('cold', model.cold_test_results), ('warm', model.warm_test_results)]:
+                results[setting]['hit'][i].append(test_results[i][0])
+                results[setting]['precision'][i].append(test_results[i][1])
+                results[setting]['recall'][i].append(test_results[i][2])
+                results[setting]['ndcg'][i].append(test_results[i][3])
 
-            cold_hit_results[i].append(model.cold_test_results[i][0])
-            cold_precision_results[i].append(model.cold_test_results[i][1])
-            cold_recall_results[i].append(model.cold_test_results[i][2])
-            cold_ndcg_results[i].append(model.cold_test_results[i][3])
+        time_results.append((model.train_end_time - model.train_start_time) / args.epochs)
 
-            warm_hit_results[i].append(model.warm_test_results[i][0])
-            warm_precision_results[i].append(model.warm_test_results[i][1])
-            warm_recall_results[i].append(model.warm_test_results[i][2])
-            warm_ndcg_results[i].append(model.warm_test_results[i][3])
-
-        time_results.append((model.train_end_time - model.train_start_time)/args.epochs)
-
-    for i in range(len(top_Ns)):
+    for i, top_n in enumerate(top_Ns):
         print("*" * 80)
-        print(f"Top-{top_Ns[i]} Overall Test Performance:")
-        mean_all_hit, std_all_hit = np.mean(all_hit_results[i]), np.std(all_hit_results[i])
-        mean_all_precision, std_all_precision = np.mean(all_precision_results[i]), np.std(all_precision_results[i])
-        mean_all_recall, std_all_recall = np.mean(all_recall_results[i]), np.std(all_recall_results[i])
-        mean_all_ndcg, std_all_ndcg = np.mean(all_ndcg_results[i]), np.std(all_ndcg_results[i])
-        print(f"Hit@{top_Ns[i]}: {mean_all_hit:.4f}±{std_all_hit:.4f}, "
-              f"Precision@{top_Ns[i]}: {mean_all_precision:.4f}±{std_all_precision:.4f}, "
-              f"Recall@{top_Ns[i]}: {mean_all_recall:.4f}±{std_all_recall:.4f}, "
-              f"NDCG@{top_Ns[i]}: {mean_all_ndcg:.4f}±{std_all_ndcg:.4f}")
-
-        print(f"Top-{top_Ns[i]} Cold-Start Test Performance:")
-        mean_cold_hit, std_cold_hit = np.mean(cold_hit_results[i]), np.std(cold_hit_results[i])
-        mean_cold_precision, std_cold_precision = np.mean(cold_precision_results[i]), np.std(cold_precision_results[i])
-        mean_cold_recall, std_cold_recall = np.mean(cold_recall_results[i]), np.std(cold_recall_results[i])
-        mean_cold_ndcg, std_cold_ndcg = np.mean(cold_ndcg_results[i]), np.std(cold_ndcg_results[i])
-        print(f"Hit@{top_Ns[i]}: {mean_cold_hit:.4f}±{std_cold_hit:.4f}, "
-              f"Precision@{top_Ns[i]}: {mean_cold_precision:.4f}±{std_cold_precision:.4f}, "
-              f"Recall@{top_Ns[i]}: {mean_cold_recall:.4f}±{std_cold_recall:.4f}, "
-              f"NDCG@{top_Ns[i]}: {mean_cold_ndcg:.4f}±{std_cold_ndcg:.4f}")
-
-        print(f"Top-{top_Ns[i]} Warm-Start Test Performance:")
-        mean_warm_hit, std_warm_hit = np.mean(warm_hit_results[i]), np.std(warm_hit_results[i])
-        mean_warm_precision, std_warm_precision = np.mean(warm_precision_results[i]), np.std(warm_precision_results[i])
-        mean_warm_recall, std_warm_recall = np.mean(warm_recall_results[i]), np.std(warm_recall_results[i])
-        mean_warm_ndcg, std_warm_ndcg = np.mean(warm_ndcg_results[i]), np.std(warm_ndcg_results[i])
-        print(f"Hit@{top_Ns[i]}: {mean_warm_hit:.4f}±{std_warm_hit:.4f}, "
-              f"Precision@{top_Ns[i]}: {mean_warm_precision:.4f}±{std_warm_precision:.4f}, "
-              f"Recall@{top_Ns[i]}: {mean_warm_recall:.4f}±{std_warm_recall:.4f}, "
-              f"NDCG@{top_Ns[i]}: {mean_warm_ndcg:.4f}±{std_warm_ndcg:.4f}")
+        for setting_name, setting_key in [('Overall', 'all'), ('Cold-Start', 'cold'), ('Warm-Start', 'warm')]:
+            print(f"Top-{top_n} {setting_name} Test Performance:")
+            
+            metrics = {
+                'Hit': (np.mean(results[setting_key]['hit'][i]), np.std(results[setting_key]['hit'][i])),
+                'Precision': (np.mean(results[setting_key]['precision'][i]), np.std(results[setting_key]['precision'][i])),
+                'Recall': (np.mean(results[setting_key]['recall'][i]), np.std(results[setting_key]['recall'][i])),
+                'NDCG': (np.mean(results[setting_key]['ndcg'][i]), np.std(results[setting_key]['ndcg'][i]))
+            }
+            
+            print(', '.join([f"{name}@{top_n}: {mean:.4f}±{std:.4f}" for name, (mean, std) in metrics.items()]))
 
     print(f"Efficiency Performance:")
     mean_time, std_time = np.mean(time_results), np.std(time_results)
