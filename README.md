@@ -22,6 +22,7 @@
 
 🔧 **TODO**
 We are now enhancing the codebase for user-friendly:
+- [ ] Redundancies removal and input type standardization.
 - [ ] Add representative new models in 2024-2025. 
 - [ ] Fix bugs and optimize the toolkit efficiency mentioned in the issues. (Thanks for that!)
 - [x] Toolkit building with related works before 2024.
