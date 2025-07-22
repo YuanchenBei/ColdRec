@@ -5,12 +5,8 @@ from util.utils import next_batch_pairwise, bpr_loss, l2_reg_loss
 
 
 class MF(BaseColdStartTrainer):
-    def __init__(self, args, training_data, warm_valid_data, cold_valid_data, all_valid_data,
-                 warm_test_data, cold_test_data, all_test_data, user_num, item_num,
-                 warm_user_idx, warm_item_idx, cold_user_idx, cold_item_idx, device):
-        super(MF, self).__init__(args, training_data, warm_valid_data, cold_valid_data, all_valid_data,
-                                 warm_test_data, cold_test_data, all_test_data, user_num, item_num,
-                                 warm_user_idx, warm_item_idx, cold_user_idx, cold_item_idx, device)
+    def __init__(self, config):
+        super(MF, self).__init__(config)
         self.model = Matrix_Factorization(self.data, self.emb_size)
 
     def train(self):

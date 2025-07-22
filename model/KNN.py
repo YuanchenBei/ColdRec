@@ -7,19 +7,13 @@ from .LightGCN import LGCN_Encoder
 
 
 class KNN(BaseColdStartTrainer):
-    def __init__(self, args, training_data, warm_valid_data, cold_valid_data, all_valid_data,
-                 warm_test_data, cold_test_data, all_test_data, user_num, item_num,
-                 warm_user_idx, warm_item_idx, cold_user_idx, cold_item_idx, device,
-                 user_content=None, item_content=None):
-        super(KNN, self).__init__(args, training_data, warm_valid_data, cold_valid_data, all_valid_data,
-                                  warm_test_data, cold_test_data, all_test_data, user_num, item_num,
-                                  warm_user_idx, warm_item_idx, cold_user_idx, cold_item_idx, device,
-                                  user_content=user_content, item_content=item_content)
+    def __init__(self, config):
+        super(KNN, self).__init__(config)
         if self.args.backbone == 'MF':
             self.encoder = Matrix_Factorization(self.data, self.emb_size)
         else:
             self.encoder = LGCN_Encoder(self.data, self.emb_size, self.args.layers, self.device)
-        self.knn_num = args.knn_num
+        self.knn_num = self.args.knn_num
 
     def train(self):
         encoder = self.encoder.to(self.device)

@@ -8,14 +8,10 @@ from util.databuilder import TorchGraphInterface
 
 # Following the source code process: https://github.com/Coder-Yu/SELFRec/blob/main/model/graph/SimGCL.py
 class SimGCL(BaseColdStartTrainer):
-    def __init__(self, args, training_data, warm_valid_data, cold_valid_data, all_valid_data,
-                 warm_test_data, cold_test_data, all_test_data, user_num, item_num,
-                 warm_user_idx, warm_item_idx, cold_user_idx, cold_item_idx, device):
-        super(SimGCL, self).__init__(args, training_data, warm_valid_data, cold_valid_data, all_valid_data,
-                                       warm_test_data, cold_test_data, all_test_data, user_num, item_num,
-                                       warm_user_idx, warm_item_idx, cold_user_idx, cold_item_idx, device)
-        self.n_layers = args.layers
-        self.model = SimGCL_Encoder(args, self.data, self.emb_size, self.n_layers, device)
+    def __init__(self, config):
+        super(SimGCL, self).__init__(config)
+        self.n_layers = self.args.layers
+        self.model = SimGCL_Encoder(self.args, self.data, self.emb_size, self.n_layers, self.device)
 
     def train(self):
         model = self.model.to(self.device)

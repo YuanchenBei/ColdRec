@@ -7,17 +7,11 @@ import torch.nn.functional as F
 
 # Following the source code process: https://github.com/zfnWong/ALDI
 class ALDI(BaseColdStartTrainer):
-    def __init__(self, args, training_data, warm_valid_data, cold_valid_data, all_valid_data,
-                 warm_test_data, cold_test_data, all_test_data, user_num, item_num,
-                 warm_user_idx, warm_item_idx, cold_user_idx, cold_item_idx, device,
-                 user_content=None, item_content=None):
-        super(ALDI, self).__init__(args, training_data, warm_valid_data, cold_valid_data, all_valid_data,
-                                  warm_test_data, cold_test_data, all_test_data, user_num, item_num,
-                                  warm_user_idx, warm_item_idx, cold_user_idx, cold_item_idx, device,
-                                  user_content=user_content, item_content=item_content)
+    def __init__(self, config):
+        super(ALDI, self).__init__(config)
         if self.args.cold_object == 'user':
             raise Exception('Cold user is not supported in ALDI due to its specific design for item cold-start problem.')
-        self.model = ALDI_Learner(args, self.data, self.emb_size, device)
+        self.model = ALDI_Learner(self.args, self.data, self.emb_size, self.device)
 
     def train(self):
         model = self.model.to(self.device)
@@ -105,13 +99,14 @@ class ALDI(BaseColdStartTrainer):
             return score.cpu().numpy()
     
     def batch_predict(self, users):
-        score = torch.zeros(self.data.item_num, dtype=torch.float32).to(self.device)
+        #score = torch.zeros(self.data.item_num, dtype=torch.float32).to(self.device)
+        score = torch.zeros(len(users), self.data.item_num, dtype=torch.float32).to(self.device)
         with torch.no_grad():
             users = self.data.get_user_id_list(users)
             users = torch.tensor(users, device=self.device)
             #score = torch.matmul(self.user_emb[users], self.item_emb.transpose(0, 1))
-            score[self.data.mapped_warm_item_idx] = torch.matmul(self.warm_user_emb[users], self.item_emb[self.data.mapped_warm_item_idx].transpose(0, 1))
-            score[self.data.mapped_cold_item_idx] = torch.matmul(self.cold_user_emb[users], self.item_emb[self.data.mapped_cold_item_idx].transpose(0, 1))
+            score[:, self.data.mapped_warm_item_idx] = torch.matmul(self.warm_user_emb[users], self.item_emb[self.data.mapped_warm_item_idx].transpose(0, 1))
+            score[:, self.data.mapped_cold_item_idx] = torch.matmul(self.cold_user_emb[users], self.item_emb[self.data.mapped_cold_item_idx].transpose(0, 1))
             return score
 
 

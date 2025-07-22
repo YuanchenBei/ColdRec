@@ -5,15 +5,9 @@ from util.utils import next_batch_pairwise, bpr_loss, l2_reg_loss
 
 
 class DUIF(BaseColdStartTrainer):
-    def __init__(self, args, training_data, warm_valid_data, cold_valid_data, all_valid_data,
-                 warm_test_data, cold_test_data, all_test_data, user_num, item_num,
-                 warm_user_idx, warm_item_idx, cold_user_idx, cold_item_idx, device,
-                 user_content=None, item_content=None):
-        super(DUIF, self).__init__(args, training_data, warm_valid_data, cold_valid_data, all_valid_data,
-                                   warm_test_data, cold_test_data, all_test_data, user_num, item_num,
-                                   warm_user_idx, warm_item_idx, cold_user_idx, cold_item_idx, device,
-                                   user_content=user_content, item_content=item_content)
-        self.model = DUIF_Encoder(args, self.data, self.emb_size, device)
+    def __init__(self, config):
+        super(DUIF, self).__init__(config)
+        self.model = DUIF_Encoder(self.args, self.data, self.emb_size, self.device)
 
     def train(self):
         model = self.model.to(self.device)

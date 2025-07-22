@@ -9,20 +9,16 @@ import faiss
 
 # Following the source code process: https://github.com/Coder-Yu/SELFRec/blob/main/model/graph/NCL.py
 class NCL(BaseColdStartTrainer):
-    def __init__(self, args, training_data, warm_valid_data, cold_valid_data, all_valid_data,
-                 warm_test_data, cold_test_data, all_test_data, user_num, item_num,
-                 warm_user_idx, warm_item_idx, cold_user_idx, cold_item_idx, device):
-        super(NCL, self).__init__(args, training_data, warm_valid_data, cold_valid_data, all_valid_data,
-                                  warm_test_data, cold_test_data, all_test_data, user_num, item_num,
-                                  warm_user_idx, warm_item_idx, cold_user_idx, cold_item_idx, device)
-        self.n_layers = args.layers
-        self.model = LGCN_Encoder(self.data, self.emb_size, self.n_layers, device)
-        self.ssl_temp = args.tau
-        self.ssl_reg = args.ssl_reg
-        self.hyper_layers = args.hyper_layers
-        self.alpha = args.alpha
-        self.proto_reg = args.proto_reg
-        self.k = args.num_clusters
+    def __init__(self, config):
+        super(NCL, self).__init__(config)
+        self.n_layers = config.layers
+        self.model = LGCN_Encoder(self.data, self.emb_size, self.n_layers, self.device)
+        self.ssl_temp = config.tau
+        self.ssl_reg = config.ssl_reg
+        self.hyper_layers = config.hyper_layers
+        self.alpha = config.alpha
+        self.proto_reg = config.proto_reg
+        self.k = config.num_clusters
         self.user_centroids = None
         self.user_2cluster = None
         self.item_centroids = None
