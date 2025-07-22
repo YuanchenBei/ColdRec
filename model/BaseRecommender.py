@@ -1,12 +1,23 @@
 import sys
 sys.path.append('..')
+from abc import ABC, abstractmethod
+from typing import Dict, List, Tuple, Union, Optional, Any
+import torch
+import numpy as np
 from util.operator import find_k_largest, batch_find_k_largest
 from util.evaluator import ranking_evaluation
 import time
 from util.utils import process_bar
 
 
-class BaseColdStartTrainer(object):
+class BaseColdStartTrainer(ABC):
+    """
+    Abstract base class for all cold-start recommendation model trainers.
+    
+    This class defines the contract that all recommendation model implementations
+    must follow, ensuring consistent interface and behavior across different models.
+    """
+    
     def __init__(self, config):
         super(BaseColdStartTrainer, self).__init__()
         self.config = config
@@ -46,19 +57,63 @@ class BaseColdStartTrainer(object):
         else:
             self.train_end_time = time.time()
 
-    def train(self):
+    @abstractmethod
+    def train(self) -> None:
+        """
+        Train the recommendation model.
+        
+        This method should implement the training loop for the specific model.
+        It should handle model training, validation, and early stopping.
+        """
         pass
 
-    def predict(self, u):
+    @abstractmethod
+    def predict(self, u: Union[str, int]) -> np.ndarray:
+        """
+        Predict scores for a single user.
+        
+        Args:
+            u: User identifier (string or integer)
+            
+        Returns:
+            numpy.ndarray: Prediction scores for all items, shape (item_num,)
+        """
         pass
 
-    def batch_predict(self, users):
-        raise NotImplementedError("batch_predict is not implemented")
-
-    def save(self):
+    @abstractmethod
+    def batch_predict(self, users: List[Union[str, int]]) -> Union[np.ndarray, torch.Tensor]:
+        """
+        Predict scores for multiple users in batch.
+        
+        Args:
+            users: List of user identifiers
+            
+        Returns:
+            Union[np.ndarray, torch.Tensor]: Prediction scores for all users and items,
+                                           shape (num_users, item_num)
+        """
         pass
 
-    def _evaluate(self, data_set, data_type='all'):
+    @abstractmethod
+    def save(self) -> None:
+        """
+        Save the current best model state.
+        
+        This method should save the best performing model embeddings or parameters.
+        """
+        pass
+
+    def _evaluate(self, data_set: Dict, data_type: str = 'all') -> Dict[str, List[Tuple[str, float]]]:
+        """
+        Evaluate the model on a given dataset.
+        
+        Args:
+            data_set: Dictionary mapping users to their test items
+            data_type: Type of evaluation ('warm', 'cold', or 'all')
+            
+        Returns:
+            Dictionary mapping users to their recommended items with scores
+        """
         rec_list = {}
         user_count = len(data_set)
         for i, user in enumerate(data_set):
@@ -80,7 +135,17 @@ class BaseColdStartTrainer(object):
         print('')
         return rec_list
 
-    def _batch_evaluate(self, data_set, data_type='all'):
+    def _batch_evaluate(self, data_set: Dict, data_type: str = 'all') -> Dict[str, List[Tuple[str, float]]]:
+        """
+        Evaluate the model on a given dataset using batch prediction.
+        
+        Args:
+            data_set: Dictionary mapping users to their test items
+            data_type: Type of evaluation ('warm', 'cold', or 'all')
+            
+        Returns:
+            Dictionary mapping users to their recommended items with scores
+        """
         rec_list = {}
         batch_size = self.batch_size
         for i in range(0, len(data_set), batch_size):
@@ -104,7 +169,16 @@ class BaseColdStartTrainer(object):
                 rec_list[user] = list(zip(item_names, scores, strict=True))
         return rec_list
 
-    def valid(self, valid_type='all'):
+    def valid(self, valid_type: str = 'all') -> Dict[str, List[Tuple[str, float]]]:
+        """
+        Perform validation using the specified validation set.
+        
+        Args:
+            valid_type: Type of validation ('warm', 'cold', or 'all')
+            
+        Returns:
+            Dictionary mapping users to their recommended items with scores
+        """
         if valid_type == 'warm':
             valid_set = self.data.warm_valid_set
         elif valid_type == 'cold':
@@ -118,7 +192,16 @@ class BaseColdStartTrainer(object):
         except NotImplementedError:
             return self._evaluate(valid_set, valid_type)
 
-    def test(self, test_type='all'):
+    def test(self, test_type: str = 'all') -> Dict[str, List[Tuple[str, float]]]:
+        """
+        Perform testing using the specified test set.
+        
+        Args:
+            test_type: Type of testing ('warm', 'cold', or 'all')
+            
+        Returns:
+            Dictionary mapping users to their recommended items with scores
+        """
         if test_type == 'warm':
             test_set = self.data.warm_test_set
         elif test_type == 'cold':
@@ -132,7 +215,14 @@ class BaseColdStartTrainer(object):
         except NotImplementedError:
             return self._evaluate(test_set, test_type)
 
-    def full_evaluation(self, rec_list, test_type='warm'):
+    def full_evaluation(self, rec_list: Dict[str, List[Tuple[str, float]]], test_type: str = 'warm') -> None:
+        """
+        Perform full evaluation and print results.
+        
+        Args:
+            rec_list: Dictionary mapping users to their recommended items with scores
+            test_type: Type of evaluation ('warm', 'cold', or 'all')
+        """
         if test_type == 'warm':
             test_set = self.data.warm_test_set
         elif test_type == 'cold':
@@ -151,7 +241,17 @@ class BaseColdStartTrainer(object):
         print('*' * 80)
         print(f'[{test_type} setting] The result of %s:\n%s' % (self.model_name, ''.join(self.result)))
 
-    def fast_evaluation(self, epoch, valid_type='all'):
+    def fast_evaluation(self, epoch: int, valid_type: str = 'all') -> List[str]:
+        """
+        Perform fast evaluation during training.
+        
+        Args:
+            epoch: Current training epoch
+            valid_type: Type of validation ('warm', 'cold', or 'all')
+            
+        Returns:
+            List of performance metrics
+        """
         if valid_type == 'warm':
             valid_set = self.data.warm_valid_set
         elif valid_type == 'cold':
@@ -211,7 +311,13 @@ class BaseColdStartTrainer(object):
         print('-' * 120)
         return measure
 
-    def run(self):
+    def run(self) -> None:
+        """
+        Run the complete training and evaluation pipeline.
+        
+        This method orchestrates the entire training process including
+        training, testing on different settings, and evaluation.
+        """
         self.print_basic_info()
         print('Training Model...')
         self.train()

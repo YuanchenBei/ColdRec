@@ -9,7 +9,14 @@ from model_imports import *
 from util.databuilder import ColdStartDataBuilder
 
 class Config:
-    def __init__(self, args):
+    """
+    Configuration class that encapsulates all model and training parameters.
+    
+    This class centralizes all configuration data, making it easier to pass
+    to model constructors and maintain consistency across the codebase.
+    """
+    
+    def __init__(self, args: argparse.Namespace):
         self.args = args
         self.device = torch.device("cuda:%d" % (args.gpu_id) if (torch.cuda.is_available() and args.use_gpu) else "cpu")
         
@@ -46,7 +53,19 @@ class Config:
                                      warm_user_idx, warm_item_idx, cold_user_idx, cold_item_idx,
                                      user_content, item_content)
 
-def model_factory(config):
+def model_factory(config: Config):
+    """
+    Factory function to create model instances based on configuration.
+    
+    Args:
+        config: Configuration object containing all necessary parameters
+        
+    Returns:
+        Model instance implementing BaseColdStartTrainer
+        
+    Raises:
+        ValueError: If the model name is not in the available models list
+    """
     model_name = config.args.model
     if model_name not in AVAILABLE_MODELS:
         raise ValueError(f"Invalid model name: {model_name}!")
@@ -55,7 +74,13 @@ def model_factory(config):
     return model_class(config)
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
+    """
+    Parse command line arguments and return a namespace object.
+    
+    Returns:
+        Parsed arguments namespace
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', default='citeulike')
     parser.add_argument('--model', default='MF')
