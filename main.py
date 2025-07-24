@@ -5,7 +5,7 @@ import pickle
 from util.loader import DataLoader
 from util.utils import set_seed
 from config.model_param import model_specific_param
-from model_imports import *
+from model import AVAILABLE_MODELS
 from util.databuilder import ColdStartDataBuilder
 
 class Config:
@@ -67,10 +67,12 @@ def model_factory(config: Config):
         ValueError: If the model name is not in the available models list
     """
     model_name = config.args.model
-    if model_name not in AVAILABLE_MODELS:
-        raise ValueError(f"Invalid model name: {model_name}!")
-    
-    model_class = globals()[model_name]
+    model_class = AVAILABLE_MODELS.get(model_name)
+
+    if model_class is None:
+        raise ValueError(f"Invalid model name: {model_name}. "
+                         f"Available models: {list(AVAILABLE_MODELS.keys())}")
+
     return model_class(config)
 
 
@@ -103,9 +105,6 @@ def parse_args() -> argparse.Namespace:
     parser = model_specific_param(args.model, parser, AVAILABLE_MODELS)
     return parser.parse_args()
 
-AVAILABLE_MODELS = ['MF', 'NGCF', 'LightGCN', 'SimGCL', 'XSimGCL', 'NCL', 'KNN', 'DUIF', 'DeepMusic', 'MTPR',
-                    'VBPR', 'AMR', 'GAR', 'ALDI', 'CLCRec', 'LARA', 'CCFCRec', 'DropoutNet', 'Heater',
-                    'MetaEmbedding', 'GoRec', 'USIM']
 
 if __name__ == '__main__':
     args = parse_args()
