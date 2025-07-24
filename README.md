@@ -106,6 +106,8 @@ You can flexibly set the tuning range in param_search.py.
 | 19     | [GoRec: A Generative Cold-start Recommendation Framework](https://dl.acm.org/doi/abs/10.1145/3581783.3612238)  |   GoRec   | MM 2023 |
 | 20     | [Contrastive Collaborative Filtering for Cold-Start Item Recommendation](https://arxiv.org/pdf/2302.02151)  |   CCFRec   | WWW 2023 |
 | 21     | [Aligning Distillation For Cold-start Item Recommendation](https://dl.acm.org/doi/10.1145/3539618.3591732)  |    ALDI   | SIGIR 2023 |
+| 22     |  [Fine-Tuning Out-of-Vocabulary Item Recommendation with User Sequence Imagination](https://proceedings.neurips.cc/paper_files/paper/2024/file/10d52f5d2ef0f69ac10da7c962fb6db9-Paper-Conference.pdf) | USIM |  NeurIPS 2024 |
+
 
 ---
 ## 💐 Acknowledgements
