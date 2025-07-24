@@ -19,3 +19,4 @@ from model.GoRec import GoRec
 from model.SimGCL import SimGCL
 from model.XSimGCL import XSimGCL
 from model.NCL import NCL
+from model.USIM import USIM

@@ -105,7 +105,7 @@ def parse_args() -> argparse.Namespace:
 
 AVAILABLE_MODELS = ['MF', 'NGCF', 'LightGCN', 'SimGCL', 'XSimGCL', 'NCL', 'KNN', 'DUIF', 'DeepMusic', 'MTPR',
                     'VBPR', 'AMR', 'GAR', 'ALDI', 'CLCRec', 'LARA', 'CCFCRec', 'DropoutNet', 'Heater',
-                    'MetaEmbedding', 'GoRec']
+                    'MetaEmbedding', 'GoRec', 'USIM']
 
 if __name__ == '__main__':
     args = parse_args()

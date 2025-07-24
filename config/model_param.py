@@ -39,6 +39,13 @@ def model_specific_param(model_name, parser, available_models):
         parser.add_argument('--uni_coeff', type=float, default=5) # c 1    b 5    s 15
         parser.add_argument('--kl_coeff', type=float, default=10) # c 5000 b 10   s 5000
         parser.add_argument('--dropout', type=float, default=0., help='Dropout rate')
+    elif model_name == 'USIM':
+        parser.add_argument('--actor_lr', type=float, default=0.001, help='Actor learning rate')
+        parser.add_argument('--critic_lr', type=float, default=0.001, help='Critic learning rate')
+        parser.add_argument('--gamma', type=float, default=0.99, help='Discount factor')
+        parser.add_argument('--tau', type=float, default=0.005, help='Soft update parameter')
+        parser.add_argument('--buffer_size', type=int, default=10000, help='Replay buffer size')
+        parser.add_argument('--batch_size_rl', type=int, default=32, help='RL batch size')
     elif model_name == 'VBPR':
         parser.add_argument('--p_emb', type=list, default=[0.05, 0], help='lr and reg for id embeddings')
         parser.add_argument('--p_ctx', type=list, default=[0.05, 0.01], help='lr and reg for context features')
