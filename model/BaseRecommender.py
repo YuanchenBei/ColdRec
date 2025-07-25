@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Tuple, Union, Optional, Any
 import torch
 import numpy as np
-from util.operator import find_k_largest, batch_find_k_largest
 from util.evaluator import ranking_evaluation
 import time
 from util.utils import process_bar
@@ -105,38 +104,6 @@ class BaseColdStartTrainer(ABC):
 
     def _evaluate(self, data_set: Dict, data_type: str = 'all') -> Dict[str, List[Tuple[str, float]]]:
         """
-        Evaluate the model on a given dataset.
-        
-        Args:
-            data_set: Dictionary mapping users to their test items
-            data_type: Type of evaluation ('warm', 'cold', or 'all')
-            
-        Returns:
-            Dictionary mapping users to their recommended items with scores
-        """
-        rec_list = {}
-        user_count = len(data_set)
-        for i, user in enumerate(data_set):
-            candidates = self.predict(user)
-            rated_list, _ = self.data.user_rated(user)
-            if len(rated_list) != 0:
-                candidates[self.data.get_item_id_list(rated_list)] = -10e8
-            if data_type == 'warm' and self.args.cold_object == 'item':
-                candidates[self.data.mapped_cold_item_idx] = -10e8
-            if data_type == 'cold' and self.args.cold_object == 'item':
-                candidates[self.data.mapped_warm_item_idx] = -10e8
-
-            ids, scores = find_k_largest(self.max_N, candidates)
-            item_names = [self.data.id2item[iid] for iid in ids]
-            rec_list[user] = list(zip(item_names, scores))
-            if i % 1000 == 0:
-                process_bar(i, user_count)
-        process_bar(user_count, user_count)
-        print('')
-        return rec_list
-
-    def _batch_evaluate(self, data_set: Dict, data_type: str = 'all') -> Dict[str, List[Tuple[str, float]]]:
-        """
         Evaluate the model on a given dataset using batch prediction.
         
         Args:
@@ -162,7 +129,8 @@ class BaseColdStartTrainer(ABC):
             elif data_type == 'cold' and self.args.cold_object == 'item':
                 batch_candidates[:, self.data.mapped_warm_item_idx] = -10e8
 
-            batch_ids, batch_scores = batch_find_k_largest(self.max_N, batch_candidates)
+            scores, indices = torch.topk(batch_candidates, self.max_N, dim=1, largest=True, sorted=True)
+            batch_ids, batch_scores = indices.cpu().numpy(), scores.cpu().numpy()
 
             for user, ids, scores in zip(batch_users, batch_ids, batch_scores, strict=True):
                 item_names = [self.data.id2item[iid] for iid in ids]
@@ -187,10 +155,7 @@ class BaseColdStartTrainer(ABC):
             valid_set = self.data.overall_valid_set
         else:
             raise ValueError('Invalid valid type!')
-        try:
-            return self._batch_evaluate(valid_set, valid_type)
-        except NotImplementedError:
-            return self._evaluate(valid_set, valid_type)
+        return self._evaluate(valid_set, valid_type)
 
     def test(self, test_type: str = 'all') -> Dict[str, List[Tuple[str, float]]]:
         """
@@ -210,10 +175,7 @@ class BaseColdStartTrainer(ABC):
             test_set = self.data.overall_test_set
         else:
             raise ValueError('Invalid test type!')
-        try:
-            return self._batch_evaluate(test_set, test_type)
-        except NotImplementedError:
-            return self._evaluate(test_set, test_type)
+        return self._evaluate(test_set, test_type)
 
     def full_evaluation(self, rec_list: Dict[str, List[Tuple[str, float]]], test_type: str = 'warm') -> None:
         """
