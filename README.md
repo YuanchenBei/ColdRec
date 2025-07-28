@@ -22,7 +22,8 @@
 
 🔧 **TODO**
 We are now enhancing the codebase for user-friendly:
-- [ ] Add representative new models in 2024-2025. 
+- [ ] Enforce a consistent code style.
+- [ ] Add representative new models.
 - [x] Redundancies removal and input type standardization.
 - [x] Fix bugs and optimize the toolkit efficiency mentioned in the issues. (Thanks for that!)
 - [x] 🥳 Add automatic hyper-parameter tuning, you can install one more base library ***optuna*** to include this module.
