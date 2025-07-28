@@ -61,7 +61,8 @@ def model_specific_param(model_name, parser, available_models):
     elif model_name in available_models:
         pass
     else:
-        raise Exception("The model name not found.")
+        raise ValueError(f"Invalid model name: {model_name}. "
+                         f"Available models: {list(available_models.keys())}")
 
     return parser
 
