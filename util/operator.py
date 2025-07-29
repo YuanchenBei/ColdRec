@@ -1,7 +1,5 @@
 from numpy.linalg import norm
 from math import sqrt, exp
-from numba import jit
-import heapq
 import torch
 
 
@@ -140,23 +138,3 @@ def sigmoid(val):
 
 def denormalize(vec, max_val, min_val):
     return min_val + (vec - 0.01) * (max_val - min_val)
-
-
-@jit(nopython=True)
-def find_k_largest(K, candidates):
-    n_candidates = []
-    for iid, score in enumerate(candidates[:K]):
-        n_candidates.append((score, iid))
-    heapq.heapify(n_candidates)
-    for iid, score in enumerate(candidates[K:]):
-        if score > n_candidates[0][0]:
-            heapq.heapreplace(n_candidates, (score, iid + K))
-    n_candidates.sort(key=lambda d: d[0], reverse=True)
-    ids = [item[1] for item in n_candidates]
-    k_largest_scores = [item[0] for item in n_candidates]
-    return ids, k_largest_scores
-
-
-def batch_find_k_largest(K, candidates):
-    scores, indices = torch.topk(candidates, K, dim=1, largest=True, sorted=True)
-    return indices.cpu().numpy(), scores.cpu().numpy()

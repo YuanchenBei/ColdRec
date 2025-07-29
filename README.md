@@ -39,7 +39,6 @@ python >= 3.8.0
 torch >= 1.11.0
 faiss-gpu >= 1.7.3
 pandas >= 2.0.3
-numba >= 0.58.1 
 numpy >= 1.24.4
 scikit-learn >= 1.3.2
 pickle >= 0.7.5
