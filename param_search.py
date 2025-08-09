@@ -1,13 +1,12 @@
 import argparse
-import torch
-import numpy as np
-import random
 import pickle
-import os
+
+import numpy as np
 import optuna
-from util.loader import DataLoader
+import torch
+
 from config.model_param import model_specific_param
-from model_imports import *
+from util.loader import DataLoader
 
 
 def objective(trial):
@@ -114,7 +113,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print(args)
 
-    device = torch.device("cuda:%d" % (args.gpu_id) if (torch.cuda.is_available() and args.use_gpu) else "cpu")
+    device = torch.device(f"cuda:{args.gpu_id}") if (args.use_gpu and torch.cuda.is_available()) else torch.device("cpu")
+
     # data loader
     training_data = DataLoader.load_data_set(f'./data/{args.dataset}/cold_{args.cold_object}/warm_train.csv')
     # following the widely used setting in previous works, the 'all' set is used for validation.
