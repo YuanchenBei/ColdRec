@@ -7,7 +7,9 @@ import numpy as np
 from util.evaluator import ranking_evaluation
 import time
 from util.utils import process_bar
+import logging
 
+logger = logging.getLogger(__name__)
 
 class BaseColdStartTrainer(ABC):
     """
@@ -41,14 +43,14 @@ class BaseColdStartTrainer(ABC):
             self.max_early_stop_patience = self.args.early_stop
 
     def print_basic_info(self):
-        print('*' * 80)
-        print('Model: ', self.model_name)
-        print('Dataset: ', self.dataset_name)
-        print('Embedding Dimension:', self.emb_size)
-        print('Maximum Epoch:', self.maxEpoch)
-        print('Learning Rate:', self.lr)
-        print('Batch Size:', self.batch_size)
-        print('*' * 80)
+        logger.info('*' * 80)
+        logger.info(f'Model: {self.model_name}')
+        logger.info(f'Dataset: {self.dataset_name}')
+        logger.info(f'Embedding Dimension: {self.emb_size}')
+        logger.info(f'Maximum Epoch: {self.maxEpoch}')
+        logger.info(f'Learning Rate: {self.lr}')
+        logger.info(f'Batch Size: {self.batch_size}')
+        logger.info('*' * 80)
 
     def timer(self, start=True):
         if start:
@@ -200,8 +202,8 @@ class BaseColdStartTrainer(ABC):
             self.cold_test_results = test_performance
         elif test_type == 'all':
             self.overall_test_results = test_performance
-        print('*' * 80)
-        print(f'[{test_type} setting] The result of %s:\n%s' % (self.model_name, ''.join(self.result)))
+        logger.info('*' * 80)
+        logger.info(f"[{test_type} setting] The result of {self.model_name}:\n{''.join(self.result)}")
 
     def fast_evaluation(self, epoch: int, valid_type: str = 'all') -> List[str]:
         """
@@ -222,7 +224,7 @@ class BaseColdStartTrainer(ABC):
             valid_set = self.data.overall_valid_set
         else:
             raise ValueError('Invalid evaluation type!')
-        print(f'Evaluating the model under the {valid_type} setting...')
+        logger.info(f'Evaluating the model under the {valid_type} setting...')
         rec_list = self.valid(valid_type)
         measure, _ = ranking_evaluation(valid_set, rec_list, [self.max_N])
         if len(self.bestPerformance) > 0:
@@ -253,24 +255,24 @@ class BaseColdStartTrainer(ABC):
                 performance[k] = float(v)
             self.bestPerformance.append(performance)
             self.save()
-        print('-' * 120)
-        print('Performance ' + ' (Top-' + str(self.max_N) + ' Recommendation)')
+        logger.info('-' * 120)
+        logger.info('Performance ' + ' (Top-' + str(self.max_N) + ' Recommendation)')
         measure = [m.strip() for m in measure[1:]]
-        print('*Current Performance*')
-        print('Epoch:', str(epoch + 1) + ',', '  |  '.join(measure))
+        logger.info('*Current Performance*')
+        logger.info(f"Epoch:{epoch + 1}, {'  |  '.join(measure)}")
         bp = ''
         bp += 'Hit Ratio' + ':' + str(self.bestPerformance[1]['Hit Ratio']) + '  |  '
         bp += 'Precision' + ':' + str(self.bestPerformance[1]['Precision']) + '  |  '
         bp += 'Recall' + ':' + str(self.bestPerformance[1]['Recall']) + '  |  '
         bp += 'NDCG' + ':' + str(self.bestPerformance[1]['NDCG'])
-        print(f'*Best {valid_type} Performance* ')
-        print('Epoch:', str(self.bestPerformance[0]) + ',', bp)
+        logger.info(f'*Best {valid_type} Performance* ')
+        logger.info(f'Epoch:{str(self.bestPerformance[0])}, {bp}')
         if self.early_stop_flag:
             if self.early_stop_patience <= 0:
-                print(f"Stopping early at epoch {epoch + 1}.")
+                logger.info(f"Stopping early at epoch {epoch + 1}.")
             else:
-                print(f"Early stopping patience left: {self.early_stop_patience}.")
-        print('-' * 120)
+                logger.info(f"Early stopping patience left: {self.early_stop_patience}.")
+        logger.info('-' * 120)
         return measure
 
     def run(self) -> None:
@@ -281,11 +283,11 @@ class BaseColdStartTrainer(ABC):
         training, testing on different settings, and evaluation.
         """
         self.print_basic_info()
-        print('Training Model...')
+        logger.info('Training Model...')
         self.train()
         for test_type in ['all', 'cold', 'warm']:
-            print('*' * 80)
-            print(f'Testing under [{test_type}] setting...')
+            logger.info('*' * 80)
+            logger.info(f'Testing under [{test_type}] setting...')
             rec_list = self.test(test_type=test_type)
-            print(f'Evaluating under [{test_type}] setting...')
+            logger.info(f'Evaluating under [{test_type}] setting...')
             self.full_evaluation(rec_list, test_type=test_type)

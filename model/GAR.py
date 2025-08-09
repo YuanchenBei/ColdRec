@@ -2,7 +2,9 @@ import torch
 import torch.nn as nn
 from .BaseRecommender import BaseColdStartTrainer
 from util.utils import next_batch_pairwise, bpr_loss, l2_reg_loss, mse_loss
+import logging
 
+logger = logging.getLogger(__name__)
 
 # Following the source code process: https://github.com/zfnWong/GAR
 class GAR(BaseColdStartTrainer):
@@ -33,7 +35,7 @@ class GAR(BaseColdStartTrainer):
                 batch_loss.backward()
                 optimizer.step()
                 if n % 50 == 0:
-                    print('training:', epoch + 1, 'batch', n, 'batch_loss:', batch_loss.item())
+                    logger.info(f'training:{epoch + 1} batch: {n} batch_loss:{batch_loss.item()}')
 
             with torch.no_grad():
                 model.eval()

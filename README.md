@@ -42,6 +42,7 @@ pandas >= 2.0.3
 numpy >= 1.24.4
 scikit-learn >= 1.3.2
 pickle >= 0.7.5
+rich >= 14.1.0
 optuna >= 3.6.1 (If you need automatic hyper-parameter tuning) 
 ```
 

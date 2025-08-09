@@ -7,6 +7,8 @@ from util.utils import set_seed
 from config.model_param import model_specific_param
 from model import AVAILABLE_MODELS
 from util.databuilder import ColdStartDataBuilder
+import logging
+from util.logger import setup_logging
 
 class Config:
     """
@@ -37,16 +39,16 @@ class Config:
         warm_item_idx = data_info_dict['warm_item']
         cold_user_idx = data_info_dict['cold_user']
         cold_item_idx = data_info_dict['cold_item']
-        print(f"Dataset: {args.dataset}, User num: {user_num}, Item num: {item_num}.")
+        logger.info(f"Dataset: {args.dataset}, User num: {user_num}, Item num: {item_num}.")
 
         # Content obtaining
         user_content, item_content = None, None
         if args.cold_object == 'user':
             user_content = np.load(f'./data/{args.dataset}/{args.dataset}_{args.cold_object}_content.npy')
-            print(f'user content shape: {user_content.shape}')
+            logger.info(f'user content shape: {user_content.shape}')
         if args.cold_object == 'item':
             item_content = np.load(f'./data/{args.dataset}/{args.dataset}_{args.cold_object}_content.npy')
-            print(f'item content shape: {item_content.shape}')
+            logger.info(f'item content shape: {item_content.shape}')
             
         self.data = ColdStartDataBuilder(training_data, warm_valid_data, cold_valid_data, all_valid_data,
                                      warm_test_data, cold_test_data, all_test_data, user_num, item_num,
@@ -108,23 +110,24 @@ def parse_args() -> argparse.Namespace:
 
 if __name__ == '__main__':
     args = parse_args()
-    print(args)
+    log_path = setup_logging(dataset=args.dataset, model=args.model)
+    logger = logging.getLogger(__name__)
+    logger.info(args)
     
     config = Config(args)
-
     top_Ns = args.topN.split(',')
     results = {setting: {metric: [[] for _ in top_Ns] for metric in ['hit', 'precision', 'recall', 'ndcg']} for setting in ['all', 'cold', 'warm']}
     
     time_results = []
 
     for round_num in range(args.runs):
-        print(f"Start round {round_num} running!")
+        logger.info(f"Start round {round_num} running!")
 
         seed = args.seed if args.runs == 1 else round_num
         set_seed(seed, args.use_gpu)
             
         model = model_factory(config)
-        print(f"Registered model: {args.model}.")
+        logger.info(f"Registered model: {args.model}.")
 
         model.run()
 
@@ -139,9 +142,9 @@ if __name__ == '__main__':
         time_results.append((model.train_end_time - model.train_start_time) / args.epochs)
 
     for i, top_n in enumerate(top_Ns):
-        print("*" * 80)
+        logger.info("*" * 80)
         for setting_name, setting_key in [('Overall', 'all'), ('Cold-Start', 'cold'), ('Warm-Start', 'warm')]:
-            print(f"Top-{top_n} {setting_name} Test Performance:")
+            logger.info(f"Top-{top_n} {setting_name} Test Performance:")
             
             metrics = {
                 'Hit': (np.mean(results[setting_key]['hit'][i]), np.std(results[setting_key]['hit'][i])),
@@ -150,8 +153,8 @@ if __name__ == '__main__':
                 'NDCG': (np.mean(results[setting_key]['ndcg'][i]), np.std(results[setting_key]['ndcg'][i]))
             }
             
-            print(', '.join([f"{name}@{top_n}: {mean:.4f}±{std:.4f}" for name, (mean, std) in metrics.items()]))
+            logger.info(', '.join([f"{name}@{top_n}: {mean:.4f}±{std:.4f}" for name, (mean, std) in metrics.items()]))
 
-    print(f"Efficiency Performance:")
+    logger.info(f"Efficiency Performance:")
     mean_time, std_time = np.mean(time_results), np.std(time_results)
-    print(f"Time: {mean_time:.4f}±{std_time:.4f} seconds per epoch.")
+    logger.info(f"Time: {mean_time:.4f}±{std_time:.4f} seconds per epoch.")
