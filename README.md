@@ -23,7 +23,7 @@
 🔧 **TODO**
 We are now enhancing the codebase for user-friendly:
 - [ ] Enforce a consistent code style.
-- [ ] Add representative new models.
+- [x] Add representative new models.
 - [x] Redundancies removal and input type standardization.
 - [x] Fix bugs and optimize the toolkit efficiency mentioned in the issues. (Thanks for that!)
 - [x] 🥳 Add automatic hyper-parameter tuning, you can install one more base library ***optuna*** to include this module.
@@ -98,15 +98,18 @@ You can flexibly set the tuning range in param_search.py.
 | 11     | [How to Learn Item Representation for Cold-Start Multimedia Recommendation?](https://dl.acm.org/doi/10.1145/3394171.3413628)  |    MTPR    | MM 2020 |
 | 12     | [LARA: Attribute-to-feature Adversarial Learning for New-item Recommendation](https://ir.sdu.edu.cn/~zhaochunren/papers/7LARAAttribute-to-featureadversariallearningfornew-itemrecommendation.pdf)  |    LARA    | WSDM 2020 |
 | 13     | [Recommendation for New Users and New Items via Randomized Training and Mixture-of-Experts Transformation](https://zziwei.github.io/pubs/Ziwei_SIGIR_2020_Cold.pdf)  |    Heater    | SIGIR 2020 |
-| 14    | [Contrastive Learning for Cold-Start Recommendation](https://arxiv.org/pdf/2107.05315)  |    CLCRec    |  MM 2021 |
-| 15*    | [Improving Graph Collaborative Filtering with Neighborhood-enriched Contrastive Learning](https://arxiv.org/pdf/2202.06200)  | NCL     | WWW 2022 |
-| 16*    | [Are Graph Augmentations Necessary? Simple Graph Contrastive Learning for Recommendation](https://arxiv.org/pdf/2112.08679)  | SimGCL     | SIGIR 2022 |
-| 17     | [Generative Adversarial Framework for Cold-Start Item Recommendation](https://dl.acm.org/doi/abs/10.1145/3477495.3531897)  |    GAR   | SIGIR 2022 |
-| 18     |  [XSimGCL: Towards Extremely Simple Graph Contrastive Learning for Recommendation](https://arxiv.org/pdf/2209.02544) |  XSimGCL  |   TKDE 2023 |
-| 19     | [GoRec: A Generative Cold-start Recommendation Framework](https://dl.acm.org/doi/abs/10.1145/3581783.3612238)  |   GoRec   | MM 2023 |
-| 20     | [Contrastive Collaborative Filtering for Cold-Start Item Recommendation](https://arxiv.org/pdf/2302.02151)  |   CCFRec   | WWW 2023 |
-| 21     | [Aligning Distillation For Cold-start Item Recommendation](https://dl.acm.org/doi/10.1145/3539618.3591732)  |    ALDI   | SIGIR 2023 |
-| 22     |  [Fine-Tuning Out-of-Vocabulary Item Recommendation with User Sequence Imagination](https://proceedings.neurips.cc/paper_files/paper/2024/file/10d52f5d2ef0f69ac10da7c962fb6db9-Paper-Conference.pdf) | USIM |  NeurIPS 2024 |
+| 14     | [Attribute Graph Neural Networks for Strict Cold Start Recommendation](https://ieeexplore.ieee.org/document/9261110)  |    AGNN    | TKDE 2020 |
+| 15    | [Contrastive Learning for Cold-Start Recommendation](https://arxiv.org/pdf/2107.05315)  |    CLCRec    |  MM 2021 |
+| 16*    | [Improving Graph Collaborative Filtering with Neighborhood-enriched Contrastive Learning](https://arxiv.org/pdf/2202.06200)  | NCL     | WWW 2022 |
+| 17*    | [Are Graph Augmentations Necessary? Simple Graph Contrastive Learning for Recommendation](https://arxiv.org/pdf/2112.08679)  | SimGCL     | SIGIR 2022 |
+| 18     | [Generative Adversarial Framework for Cold-Start Item Recommendation](https://dl.acm.org/doi/abs/10.1145/3477495.3531897)  |    GAR   | SIGIR 2022 |
+| 19     |  [XSimGCL: Towards Extremely Simple Graph Contrastive Learning for Recommendation](https://arxiv.org/pdf/2209.02544) |  XSimGCL  |   TKDE 2023 |
+| 20     | [GoRec: A Generative Cold-start Recommendation Framework](https://dl.acm.org/doi/abs/10.1145/3581783.3612238)  |   GoRec   | MM 2023 |
+| 21     | [Contrastive Collaborative Filtering for Cold-Start Item Recommendation](https://arxiv.org/pdf/2302.02151)  |   CCFRec   | WWW 2023 |
+| 22     | [Aligning Distillation For Cold-start Item Recommendation](https://dl.acm.org/doi/10.1145/3539618.3591732)  |    ALDI   | SIGIR 2023 |
+| 23     |  [Fine-Tuning Out-of-Vocabulary Item Recommendation with User Sequence Imagination](https://proceedings.neurips.cc/paper_files/paper/2024/file/10d52f5d2ef0f69ac10da7c962fb6db9-Paper-Conference.pdf) | USIM |  NeurIPS 2024 |
+| 24     | [Content-based Graph Reconstruction for Cold-start Item Recommendation](https://dl.acm.org/doi/10.1145/3626772.3657801) | CGRC | SIGIR 2024 |
+| 25     | [M2VAE: Multi-Modal Multi-View Variational Autoencoder for Cold-start Item Recommendation](https://ojs.aaai.org/index.php/AAAI/article/view/38501/42463) | M2VAE | AAAI 2026 | 
 
 
 ---
