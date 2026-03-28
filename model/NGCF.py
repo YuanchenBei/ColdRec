@@ -32,7 +32,7 @@ class NGCF(BaseColdStartTrainer):
             with torch.no_grad():
                 model.eval()
                 self.user_emb, self.item_emb = model()
-                if epoch % 1 == 0:
+                if epoch % 5 == 0:
                     self.fast_evaluation(epoch, valid_type='all')
                     if self.early_stop_flag:
                         if self.early_stop_patience <= 0:

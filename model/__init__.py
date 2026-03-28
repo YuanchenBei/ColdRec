@@ -1,6 +1,8 @@
+from .AGNN import AGNN
 from .ALDI import ALDI
 from .AMR import AMR
 from .CCFCRec import CCFCRec
+from .CGRC import CGRC
 from .CLCRec import CLCRec
 from .DeepMusic import DeepMusic
 from .DropoutNet import DropoutNet
@@ -13,6 +15,7 @@ from .LARA import LARA
 from .LightGCN import LightGCN
 from .MetaEmbedding import MetaEmbedding
 from .MF import MF
+from .M2VAE import M2VAE
 from .MTPR import MTPR
 from .NCL import NCL
 from .NGCF import NGCF
@@ -22,9 +25,11 @@ from .VBPR import VBPR
 from .XSimGCL import XSimGCL
 
 AVAILABLE_MODELS = {
+    'AGNN': AGNN,
     'ALDI': ALDI,
     'AMR': AMR,
     'CCFCRec': CCFCRec,
+    'CGRC': CGRC,
     'CLCRec': CLCRec,
     'DeepMusic': DeepMusic,
     'DropoutNet': DropoutNet,
@@ -37,6 +42,7 @@ AVAILABLE_MODELS = {
     'LightGCN': LightGCN,
     'MetaEmbedding': MetaEmbedding,
     'MF': MF,
+    'M2VAE': M2VAE,
     'MTPR': MTPR,
     'NCL': NCL,
     'NGCF': NGCF,

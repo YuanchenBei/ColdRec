@@ -132,9 +132,9 @@ class BaseColdStartTrainer(ABC):
             scores, indices = torch.topk(batch_candidates, self.max_N, dim=1, largest=True, sorted=True)
             batch_ids, batch_scores = indices.cpu().numpy(), scores.cpu().numpy()
 
-            for user, ids, scores in zip(batch_users, batch_ids, batch_scores, strict=True):
+            for user, ids, scores in zip(batch_users, batch_ids, batch_scores):
                 item_names = [self.data.id2item[iid] for iid in ids]
-                rec_list[user] = list(zip(item_names, scores, strict=True))
+                rec_list[user] = list(zip(item_names, scores))
         return rec_list
 
     def valid(self, valid_type: str = 'all') -> Dict[str, List[Tuple[str, float]]]:

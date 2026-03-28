@@ -1,3 +1,5 @@
+import os
+
 import torch
 import torch.nn as nn
 from .BaseRecommender import BaseColdStartTrainer
@@ -123,13 +125,28 @@ class CCFCRec_Learner(nn.Module):
         self.attr_W2 = torch.nn.Parameter(torch.FloatTensor(self.args.attr_present_dim, 1))
         self.h = nn.LeakyReLU()
         self.sigmoid = torch.nn.Sigmoid()
-        if self.args.pretrain is True:
-            if self.args.pretrain_update is True:
-                self.user_embedding = nn.Parameter(torch.load(f'./emb/{self.args.dataset}_cold_{self.args.cold_object}_{self.args.backbone}_user_emb.pt', map_location='cpu'), requires_grad=True)
-                self.item_embedding = nn.Parameter(torch.load(f'./emb/{self.args.dataset}_cold_{self.args.cold_object}_{self.args.backbone}_item_emb.pt', map_location='cpu'), requires_grad=True)
-            else:
-                self.user_embedding = nn.Parameter(torch.load('user_emb.pt'), requires_grad=False)
-                self.item_embedding = nn.Parameter(torch.load('item_emb.pt'), requires_grad=False)
+        if self.args.pretrain:
+            user_path = (
+                f'./emb/{self.args.dataset}_cold_{self.args.cold_object}_{self.args.backbone}_user_emb.pt'
+            )
+            item_path = (
+                f'./emb/{self.args.dataset}_cold_{self.args.cold_object}_{self.args.backbone}_item_emb.pt'
+            )
+            for p in (user_path, item_path):
+                if not os.path.isfile(p):
+                    raise FileNotFoundError(
+                        f'CCFCRec --pretrain requires {p}. Train the backbone first '
+                        f'(e.g. main.py --model {self.args.backbone} --dataset {self.args.dataset} '
+                        f'--cold_object {self.args.cold_object}) or set --backbone to match '
+                        f'existing files under ./emb/.'
+                    )
+            req_grad = bool(self.args.pretrain_update)
+            self.user_embedding = nn.Parameter(
+                torch.load(user_path, map_location='cpu'), requires_grad=req_grad
+            )
+            self.item_embedding = nn.Parameter(
+                torch.load(item_path, map_location='cpu'), requires_grad=req_grad
+            )
         else:
             self.user_embedding = nn.Parameter(torch.FloatTensor(self.data.user_num, self.args.implicit_dim))
             self.item_embedding = nn.Parameter(torch.FloatTensor(self.data.item_num, self.args.implicit_dim))
@@ -142,7 +159,7 @@ class CCFCRec_Learner(nn.Module):
         nn.init.xavier_normal_(self.attr_W1)
         nn.init.xavier_normal_(self.attr_W2)
         nn.init.xavier_normal_(self.attr_b1)
-        if self.args.pretrain is False:
+        if not self.args.pretrain:
             nn.init.xavier_normal_(self.user_embedding)
             nn.init.xavier_normal_(self.item_embedding)
         nn.init.xavier_normal_(self.gen_layer1.weight)
