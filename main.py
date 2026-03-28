@@ -1,4 +1,8 @@
 import argparse
+import json
+import os
+from datetime import datetime
+
 import torch
 import numpy as np
 import pickle
@@ -101,6 +105,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--cold_object', default='item', type=str, choices=['user', 'item'])
     parser.add_argument('--backbone', default='MF')
     parser.add_argument('--early_stop', type=int, default=10, help='Early stopping patience. If set to 0, early stopping is disabled.')
+    parser.add_argument(
+        '--result_dir', type=str, default='./result',
+        help='Base directory when --result_file is not set (uses <result_dir>/<model>/).')
+    parser.add_argument(
+        '--result_log', type=str, default='history.txt',
+        help='Log filename under <result_dir>/<model>/ when --result_file is not set.')
+    parser.add_argument(
+        '--result_file', type=str, default='',
+        help='If set, write to this path instead of result_dir/<model>/result_log.')
+    parser.add_argument(
+        '--result_overwrite', action='store_true',
+        help='Overwrite the result file instead of appending (default: append).')
     args, _ = parser.parse_known_args()
     parser = model_specific_param(args.model, parser, AVAILABLE_MODELS)
     return parser.parse_args()
@@ -155,3 +171,96 @@ if __name__ == '__main__':
     print(f"Efficiency Performance:")
     mean_time, std_time = np.mean(time_results), np.std(time_results)
     print(f"Time: {mean_time:.4f}±{std_time:.4f} seconds per epoch.")
+
+    # --- Write method, hyperparameters, and metrics to result file ---
+    def _args_to_serializable(ns):
+        out = {}
+        for k, v in sorted(vars(ns).items()):
+            if isinstance(v, (int, float, str, bool)) or v is None:
+                out[k] = v
+            elif isinstance(v, (list, tuple)):
+                out[k] = list(v)
+            else:
+                out[k] = repr(v)
+        return out
+
+    metrics_payload = {}
+    for i, top_n in enumerate(top_Ns):
+        tn = str(top_n)
+        metrics_payload[tn] = {}
+        for setting_name, setting_key in [('Overall', 'all'), ('Cold-Start', 'cold'), ('Warm-Start', 'warm')]:
+            metrics_payload[tn][setting_key] = {
+                'Hit': {'mean': float(np.mean(results[setting_key]['hit'][i])),
+                        'std': float(np.std(results[setting_key]['hit'][i]))},
+                'Precision': {'mean': float(np.mean(results[setting_key]['precision'][i])),
+                              'std': float(np.std(results[setting_key]['precision'][i]))},
+                'Recall': {'mean': float(np.mean(results[setting_key]['recall'][i])),
+                           'std': float(np.std(results[setting_key]['recall'][i]))},
+                'NDCG': {'mean': float(np.mean(results[setting_key]['ndcg'][i])),
+                         'std': float(np.std(results[setting_key]['ndcg'][i]))},
+            }
+
+    if args.result_file and str(args.result_file).strip():
+        result_path = os.path.abspath(args.result_file)
+    else:
+        result_path = os.path.join(
+            os.path.abspath(args.result_dir), args.model, args.result_log
+        )
+    result_dir_for_file = os.path.dirname(result_path)
+    if result_dir_for_file:
+        os.makedirs(result_dir_for_file, exist_ok=True)
+
+    lines = [
+        '=== ColdRec Run Result ===',
+        f'timestamp: {datetime.now().isoformat(timespec="seconds")}',
+        f'method: {args.model}',
+        f'dataset: {args.dataset}',
+        f'cold_object: {args.cold_object}',
+        f'backbone: {args.backbone}',
+        f'runs: {args.runs}',
+        '',
+        '--- Hyperparameters ---',
+    ]
+    for k, v in sorted(_args_to_serializable(args).items()):
+        lines.append(f'{k}: {v}')
+    lines.extend([
+        '',
+        '--- Test Metrics (mean ± std) ---',
+    ])
+    for i, top_n in enumerate(top_Ns):
+        for setting_name, setting_key in [('Overall', 'all'), ('Cold-Start', 'cold'), ('Warm-Start', 'warm')]:
+            m = metrics_payload[str(top_n)][setting_key]
+            lines.append(
+                f'Top-{top_n} {setting_name}: '
+                f"Hit={m['Hit']['mean']:.4f}±{m['Hit']['std']:.4f}, "
+                f"Precision={m['Precision']['mean']:.4f}±{m['Precision']['std']:.4f}, "
+                f"Recall={m['Recall']['mean']:.4f}±{m['Recall']['std']:.4f}, "
+                f"NDCG={m['NDCG']['mean']:.4f}±{m['NDCG']['std']:.4f}"
+            )
+    lines.extend([
+        '',
+        '--- Efficiency ---',
+        f'seconds_per_epoch_mean: {float(mean_time):.6f}',
+        f'seconds_per_epoch_std: {float(std_time):.6f}',
+        '',
+        '--- JSON (machine-readable) ---',
+        json.dumps(
+            {
+                'method': args.model,
+                'hyperparameters': _args_to_serializable(args),
+                'metrics': metrics_payload,
+                'efficiency': {'seconds_per_epoch_mean': float(mean_time), 'seconds_per_epoch_std': float(std_time)},
+            },
+            indent=2,
+            ensure_ascii=False,
+        ),
+    ])
+
+    block = '\n'.join(lines) + '\n'
+    run_sep = '\n' + '=' * 80 + '\n'
+    mode = 'w' if args.result_overwrite else 'a'
+    with open(result_path, mode, encoding='utf-8') as f:
+        if mode == 'a' and os.path.isfile(result_path) and os.path.getsize(result_path) > 0:
+            f.write(run_sep)
+        f.write(block)
+    print(f"Results written ({'overwrite' if args.result_overwrite else 'append'}) to: {result_path}")
