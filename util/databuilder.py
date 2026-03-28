@@ -222,16 +222,16 @@ class ColdStartDataBuilder(object):
         :return: normalized adjacency matrix
         '''
         shape = adj_mat.get_shape()
-        rowsum = np.array(adj_mat.sum(1))
+        rowsum = np.array(adj_mat.sum(1)).flatten()
         if shape[0] == shape[1]:
-            d_inv = np.power(rowsum, -0.5).flatten()
-            d_inv[np.isinf(d_inv)] = 0.
+            d_inv = np.zeros_like(rowsum, dtype=np.float32)
+            np.power(rowsum, -0.5, out=d_inv, where=rowsum != 0)
             d_mat_inv = sp.diags(d_inv)
             norm_adj_tmp = d_mat_inv.dot(adj_mat)
             norm_adj_mat = norm_adj_tmp.dot(d_mat_inv)
         else:
-            d_inv = np.power(rowsum, -1).flatten()
-            d_inv[np.isinf(d_inv)] = 0.
+            d_inv = np.zeros_like(rowsum, dtype=np.float32)
+            np.power(rowsum, -1, out=d_inv, where=rowsum != 0)
             d_mat_inv = sp.diags(d_inv)
             norm_adj_mat = d_mat_inv.dot(adj_mat)
         return norm_adj_mat
@@ -580,16 +580,16 @@ class ColdStartMetaDataBuilder(object):
         :return: normalized adjacency matrix
         '''
         shape = adj_mat.get_shape()
-        rowsum = np.array(adj_mat.sum(1))
+        rowsum = np.array(adj_mat.sum(1)).flatten()
         if shape[0] == shape[1]:
-            d_inv = np.power(rowsum, -0.5).flatten()
-            d_inv[np.isinf(d_inv)] = 0.
+            d_inv = np.zeros_like(rowsum, dtype=np.float32)
+            np.power(rowsum, -0.5, out=d_inv, where=rowsum != 0)
             d_mat_inv = sp.diags(d_inv)
             norm_adj_tmp = d_mat_inv.dot(adj_mat)
             norm_adj_mat = norm_adj_tmp.dot(d_mat_inv)
         else:
-            d_inv = np.power(rowsum, -1).flatten()
-            d_inv[np.isinf(d_inv)] = 0.
+            d_inv = np.zeros_like(rowsum, dtype=np.float32)
+            np.power(rowsum, -1, out=d_inv, where=rowsum != 0)
             d_mat_inv = sp.diags(d_inv)
             norm_adj_mat = d_mat_inv.dot(adj_mat)
         return norm_adj_mat
@@ -802,16 +802,16 @@ class DataBuilder(object):
         :return: normalized adjacency matrix
         '''
         shape = adj_mat.get_shape()
-        rowsum = np.array(adj_mat.sum(1))
+        rowsum = np.array(adj_mat.sum(1)).flatten()
         if shape[0] == shape[1]:
-            d_inv = np.power(rowsum, -0.5).flatten()
-            d_inv[np.isinf(d_inv)] = 0.
+            d_inv = np.zeros_like(rowsum, dtype=np.float32)
+            np.power(rowsum, -0.5, out=d_inv, where=rowsum != 0)
             d_mat_inv = sp.diags(d_inv)
             norm_adj_tmp = d_mat_inv.dot(adj_mat)
             norm_adj_mat = norm_adj_tmp.dot(d_mat_inv)
         else:
-            d_inv = np.power(rowsum, -1).flatten()
-            d_inv[np.isinf(d_inv)] = 0.
+            d_inv = np.zeros_like(rowsum, dtype=np.float32)
+            np.power(rowsum, -1, out=d_inv, where=rowsum != 0)
             d_mat_inv = sp.diags(d_inv)
             norm_adj_mat = d_mat_inv.dot(adj_mat)
         return norm_adj_mat

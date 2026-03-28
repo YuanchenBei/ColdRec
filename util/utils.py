@@ -146,8 +146,7 @@ def next_batch_pairwise(data, batch_size, n_negs=1):
                     for i, used, v in zip(
                         check_list,
                         data.training_set_uid[u_idx[check_list]],
-                        value_ids[check_list],
-                        strict=True
+                        value_ids[check_list]
                     )
                     if v in used
                 ]
@@ -194,7 +193,13 @@ def next_batch_pairwise_CLCRec(data, batch_size, n_negs=1):
     shuffle(training_data)
     ptr = 0
     data_size = len(training_data)
-    item_list = list(data.item.keys())
+    # Match official CLCRec (weiyinwei/CLCRec): negative pool is all items minus cold_set.
+    cold_mapped = frozenset(data.mapped_cold_item_idx)
+    item_list = [k for k in data.item.keys() if data.item[k] not in cold_mapped]
+    if not item_list:
+        raise ValueError(
+            'next_batch_pairwise_CLCRec: warm-item negative pool is empty; check cold_item split.'
+        )
     while ptr < data_size:
         if ptr + batch_size < data_size:
             batch_end = ptr + batch_size
@@ -207,10 +212,14 @@ def next_batch_pairwise_CLCRec(data, batch_size, n_negs=1):
         for i, user in enumerate(users):
             u_idx.append([data.user[user]]*(1+n_negs))
             i_idx.append([data.item[items[i]]])
-            for m in range(n_negs):
-                neg_item = choice(item_list)
-                while neg_item in data.training_set_u[user]:
-                    neg_item = choice(item_list)
+            # Without replacement (same as official CLCRec random.sample on pool \ user positives).
+            candidates = [k for k in item_list if k not in data.training_set_u[user]]
+            if len(candidates) < n_negs:
+                raise ValueError(
+                    f'next_batch_pairwise_CLCRec: user has only {len(candidates)} warm negatives '
+                    f'available but n_negs={n_negs}.'
+                )
+            for neg_item in random.sample(candidates, n_negs):
                 i_idx[i].append(data.item[neg_item])
         # u_idx [bs, 1+num_neg]
         # i_idx [bs, 1+num_neg]
@@ -265,6 +274,42 @@ def next_batch_pairwise_CCFCRec(data, batch_size, positive_number, negative_numb
                 else:
                     self_neg_list[i].append(data.item[neg_item])
         yield u_idx, i_idx, neg_u_idx, pos_i_list, neg_i_list, self_neg_list
+
+
+def next_batch_cgrc(data, batch_size, ranking_neg_per_user=32):
+    """
+    Batches for CGRC rating ranking loss (Eq. 8): one positive (u, i+) per row plus extra negatives
+    so each minibatch has a shared item set B (positives ∪ sampled non-interacted items).
+    """
+    training_data = data.training_data
+    np.random.shuffle(training_data)
+    ptr = 0
+    data_size = len(training_data)
+    item_keys = list(data.item.keys())
+    if not item_keys:
+        raise ValueError('next_batch_cgrc: empty item set')
+    while ptr < data_size:
+        batch_end = min(ptr + batch_size, data_size)
+        users = [training_data[idx][0] for idx in range(ptr, batch_end)]
+        items = [training_data[idx][1] for idx in range(ptr, batch_end)]
+        ptr = batch_end
+        u_idx = [data.user[u] for u in users]
+        i_idx = [data.item[i] for i in items]
+        B_set = set(i_idx)
+        for u in users:
+            uid = data.user[u]
+            rated = data.training_set_uid[uid]
+            added = 0
+            tries = 0
+            max_tries = ranking_neg_per_user * 50
+            while added < ranking_neg_per_user and tries < max_tries:
+                tries += 1
+                j_key = np.random.choice(item_keys)
+                if j_key not in rated:
+                    B_set.add(data.item[j_key])
+                    added += 1
+        B_list = list(B_set)
+        yield u_idx, i_idx, B_list
 
 
 def set_seed(seed, cuda):
