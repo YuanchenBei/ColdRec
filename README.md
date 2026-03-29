@@ -109,7 +109,8 @@ You can flexibly set the tuning range in param_search.py.
 | 22     | [Aligning Distillation For Cold-start Item Recommendation](https://dl.acm.org/doi/10.1145/3539618.3591732)  |    ALDI   | SIGIR 2023 |
 | 23     |  [Fine-Tuning Out-of-Vocabulary Item Recommendation with User Sequence Imagination](https://proceedings.neurips.cc/paper_files/paper/2024/file/10d52f5d2ef0f69ac10da7c962fb6db9-Paper-Conference.pdf) | USIM |  NeurIPS 2024 |
 | 24     | [Content-based Graph Reconstruction for Cold-start Item Recommendation](https://dl.acm.org/doi/10.1145/3626772.3657801) | CGRC | SIGIR 2024 |
-| 25     | [M2VAE: Multi-Modal Multi-View Variational Autoencoder for Cold-start Item Recommendation](https://ojs.aaai.org/index.php/AAAI/article/view/38501/42463) | M2VAE | AAAI 2026 | 
+| 25     | [Feature-Structure Adaptive Completion Graph Neural Network for Cold-start Recommendation](https://ojs.aaai.org/index.php/AAAI/article/view/33309/35464) | FS-GNN | AAAI 2025 |
+| 26     | [M2VAE: Multi-Modal Multi-View Variational Autoencoder for Cold-start Item Recommendation](https://ojs.aaai.org/index.php/AAAI/article/view/38501/42463) | M2VAE | AAAI 2026 | 
 
 
 ---
