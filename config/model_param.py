@@ -116,6 +116,103 @@ def model_specific_param(model_name, parser, available_models):
         parser.add_argument(
             '--pretrain_update', type=_str2bool, default=False, nargs='?', const=True,
             help='If pretrain: train loaded embeddings (true) or freeze (false); default false')
+    elif model_name == 'FSGNN':
+        # FS-GNN (AAAI'25) integrated with ColdRec: content-based features + BPR (see model/FSGNN.py).
+        parser.set_defaults(lr=0.005, reg=0.0005, emb_size=64, epochs=500, bs=2048)
+        parser.add_argument(
+            '--fsgnn_lambda_fc', type=float, default=0.5, help='Weight for feature-completion MSE L_fc'
+        )
+        parser.add_argument(
+            '--fsgnn_mu_sc', type=float, default=0.5, help='Weight for structure-completion MSE L_sc'
+        )
+        parser.add_argument(
+            '--fsgnn_p_drop', type=float, default=0.3, help='Feature dropout prob in GAE encoder (paper default)'
+        )
+        parser.add_argument(
+            '--fsgnn_gat_hidden', type=int, default=64, help='Hidden dim for GAT/structure MLP (paper uses {64,128})'
+        )
+        parser.add_argument(
+            '--fsgnn_ppr_delta', type=float, default=0.15, help='PPR restart probability delta'
+        )
+        parser.add_argument(
+            '--fsgnn_ppr_iter', type=int, default=30, help='Power iterations for PPR per user'
+        )
+        parser.add_argument(
+            '--fsgnn_ppr_topk', type=int, default=15, help='Extra U-I edges per user from PPR top-k'
+        )
+        parser.add_argument(
+            '--fsgnn_knn_k', type=int, default=15, help='k for cosine kNN on U-U and I-I (paper searches {10..25})'
+        )
+        parser.add_argument(
+            '--fsgnn_light_layers', type=int, default=2, help='LightGCN layers on completed graph'
+        )
+        parser.add_argument(
+            '--fsgnn_weight_decay', type=float, default=0.0005, help='Adam weight decay (paper default)'
+        )
+        parser.add_argument(
+            '--fsgnn_sc_max_edges',
+            type=int,
+            default=4096,
+            help='Max U-U / I-I edges sampled per batch for L_sc (memory)',
+        )
+        parser.add_argument(
+            '--fsgnn_fallback_dim',
+            type=int,
+            default=32,
+            help='Synthetic feature dim if a side has no content .npy and no mapped_* in data',
+        )
+        parser.add_argument(
+            '--fsgnn_dropout_cold_side_only',
+            type=_str2bool,
+            default=True,
+            nargs='?',
+            const=True,
+            help='Apply feature dropout only on cold_object side (paper I−/U−); false = both sides',
+        )
+        parser.add_argument(
+            '--fsgnn_id_residual',
+            type=_str2bool,
+            default=False,
+            nargs='?',
+            const=True,
+            help='Add learnable ID embedding to LightGCN init (paper uses completed features; enable if unstable)',
+        )
+        parser.add_argument(
+            '--fsgnn_sc_layers',
+            type=int,
+            default=2,
+            help='Structure-completion GCN depth per type (Eq.12; paper uses multiple layers)',
+        )
+        parser.add_argument(
+            '--fsgnn_knn_weighted',
+            type=_str2bool,
+            default=True,
+            nargs='?',
+            const=True,
+            help='kNN edges weighted by cosine (Eq.9–11); false = unweighted 0/1',
+        )
+        parser.add_argument(
+            '--fsgnn_ppr_weighted',
+            type=_str2bool,
+            default=True,
+            nargs='?',
+            const=True,
+            help='PPR extra U–I edges use normalized PPR mass as weight; false = binary',
+        )
+        parser.add_argument(
+            '--fsgnn_fc_decoder_layers',
+            type=int,
+            default=2,
+            help='Learnable feature-completion GCN decoder depth: H\'=Ã H W per layer (ReLU between; no ReLU after last)',
+        )
+        parser.add_argument(
+            '--fsgnn_lfc_cold_side_only',
+            type=_str2bool,
+            default=True,
+            nargs='?',
+            const=True,
+            help='L_fc MSE only on cold_object side (mapped_cold_*); false = both user+item',
+        )
     elif model_name == 'DropoutNet':
         parser.add_argument('--n_dropout', type=float, default=0.5, help='Dropout rate of the network training')
     elif model_name == 'Heater':
