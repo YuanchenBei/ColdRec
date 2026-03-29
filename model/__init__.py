@@ -6,6 +6,7 @@ from .CGRC import CGRC
 from .CLCRec import CLCRec
 from .DeepMusic import DeepMusic
 from .DropoutNet import DropoutNet
+from .FSGNN import FSGNN
 from .DUIF import DUIF
 from .GAR import GAR
 from .GoRec import GoRec
@@ -33,6 +34,7 @@ AVAILABLE_MODELS = {
     'CLCRec': CLCRec,
     'DeepMusic': DeepMusic,
     'DropoutNet': DropoutNet,
+    'FSGNN': FSGNN,
     'DUIF': DUIF,
     'GAR': GAR,
     'GoRec': GoRec,

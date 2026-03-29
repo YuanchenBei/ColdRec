@@ -34,11 +34,27 @@ def _drop_edges_to_items(R_csr, cold_items):
 
 
 def _add_edges_to_R(R_csr, pairs):
-    """pairs: list of (u, i) mapped indices."""
-    lil = R_csr.tolil()
-    for u, i in pairs:
-        lil[u, i] = 1.0
-    return lil.tocsr()
+    """Union of R_csr with unit-weight edges pairs (mapped user, item).
+
+    Equivalent to repeatedly assigning lil[u, i] = 1.0: duplicate (u, i) in pairs
+    or already present in R stay binary 1 after coalescing.
+    """
+    if not pairs:
+        return R_csr.tocsr(copy=True)
+    coo = R_csr.tocoo()
+    n_new = len(pairs)
+    pu = np.fromiter((p[0] for p in pairs), dtype=np.int64, count=n_new)
+    pi = np.fromiter((p[1] for p in pairs), dtype=np.int64, count=n_new)
+    row = np.concatenate([coo.row.astype(np.int64, copy=False), pu])
+    col = np.concatenate([coo.col.astype(np.int64, copy=False), pi])
+    data = np.concatenate(
+        [np.asarray(coo.data, dtype=np.float32), np.ones(n_new, dtype=np.float32)]
+    )
+    out = sp.csr_matrix((data, (row, col)), shape=R_csr.shape, dtype=np.float32)
+    out.eliminate_zeros()
+    if out.nnz:
+        out.data = np.minimum(out.data, 1.0)
+    return out
 
 
 def _sparse_adj_tensor(adj_mat, device):
@@ -78,10 +94,15 @@ def _propagate_gprime_frozen_cold(adj_t, user_emb, item_x, n_users, n_layers, co
 
 
 def _user_mean_layers_1_to_L(layer_list, n_users, L):
-    """Eq. (5): mean of user rows for layers 1..L (exclude layer 0)."""
+    """Eq. (5): mean of user rows for layers 1..L (exclude layer 0).
+
+    Each layer_list[l] is (n_users + n_items, d); only the first n_users rows are
+    user embeddings. Averaging the full tensor would mix item nodes and break
+    edge_logits_broadcast / top-k user selection for Ĝ.
+    """
     if L <= 0:
         return layer_list[0][:n_users]
-    stacks = torch.stack(layer_list[1 : L + 1], dim=0)
+    stacks = torch.stack([layer_list[l][:n_users] for l in range(1, L + 1)], dim=0)
     return stacks.mean(dim=0)
 
 
