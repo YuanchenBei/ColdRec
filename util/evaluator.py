@@ -27,7 +27,9 @@ class Metric(object):
         hit_num = 0
         for user in hits:
             hit_num += hits[user]
-        return round(hit_num/total_num,5)
+        if total_num == 0:
+            return 0.0
+        return round(hit_num / total_num, 5)
 
     # # @staticmethod
     # def hit_ratio(origin, hits):
@@ -43,14 +45,22 @@ class Metric(object):
 
     @staticmethod
     def precision(hits, N):
+        if len(hits) == 0 or N == 0:
+            return 0.0
         prec = sum([hits[user] for user in hits])
-        return round(prec / (len(hits) * N),5)
+        return round(prec / (len(hits) * N), 5)
 
     @staticmethod
     def recall(hits, origin):
-        recall_list = [hits[user]/len(origin[user]) for user in hits]
-        recall = round(sum(recall_list) / len(recall_list),5)
-        return recall
+        recall_list = []
+        for user in hits:
+            denom = len(origin[user])
+            if denom == 0:
+                continue
+            recall_list.append(hits[user] / denom)
+        if not recall_list:
+            return 0.0
+        return round(sum(recall_list) / len(recall_list), 5)
 
     @staticmethod
     def F1(prec, recall):
@@ -82,19 +92,27 @@ class Metric(object):
         return round(math.sqrt(error/count),5)
 
     @staticmethod
-    def NDCG(origin,res,N):
-        sum_NDCG = 0
+    def NDCG(origin, res, N):
+        if len(res) == 0:
+            return 0.0
+        sum_NDCG = 0.0
+        n_valid = 0
         for user in res:
             DCG = 0
             IDCG = 0
-            #1 = related, 0 = unrelated
+            # 1 = related, 0 = unrelated
             for n, item in enumerate(res[user]):
                 if item[0] in origin[user]:
-                    DCG+= 1.0/math.log(n+2,2)
-            for n, item in enumerate(list(origin[user].keys())[:N]):
-                IDCG+=1.0/math.log(n+2,2)
+                    DCG += 1.0 / math.log(n + 2, 2)
+            for n, _item in enumerate(list(origin[user].keys())[:N]):
+                IDCG += 1.0 / math.log(n + 2, 2)
+            if IDCG == 0:
+                continue
             sum_NDCG += DCG / IDCG
-        return round(sum_NDCG / len(res),5)
+            n_valid += 1
+        if n_valid == 0:
+            return 0.0
+        return round(sum_NDCG / n_valid, 5)
 
     # @staticmethod
     # def MAP(origin, res, N):

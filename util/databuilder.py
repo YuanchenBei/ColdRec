@@ -44,14 +44,31 @@ class ColdStartDataBuilder(object):
         self.mapped_item_content = None
         if user_content is not None:
             self.source_user_content = user_content
-            self.mapped_user_content = np.empty((user_content.shape[0], user_content.shape[1]))
+            n_u_buf = max(int(user_num), int(user_content.shape[0]))
+            self.mapped_user_content = np.empty((n_u_buf, user_content.shape[1]))
             self.user_content_dim = user_content.shape[-1]
         if item_content is not None:
             self.source_item_content = item_content
-            self.mapped_item_content = np.empty((item_content.shape[0], item_content.shape[1]))
+            n_i_buf = max(int(item_num), int(item_content.shape[0]))
+            self.mapped_item_content = np.empty((n_i_buf, item_content.shape[1]))
             self.item_content_dim = item_content.shape[-1]
 
         self.generate_set()
+
+        if user_content is not None and len(self.user) > self.mapped_user_content.shape[0]:
+            new_n = len(self.user)
+            ext = np.empty((new_n, self.mapped_user_content.shape[1]), dtype=self.mapped_user_content.dtype)
+            ext[: self.mapped_user_content.shape[0]] = self.mapped_user_content
+            self.mapped_user_content = ext
+            for u, uid in self.user.items():
+                self.mapped_user_content[uid] = self.source_user_content[u]
+        if item_content is not None and len(self.item) > self.mapped_item_content.shape[0]:
+            new_n = len(self.item)
+            ext = np.empty((new_n, self.mapped_item_content.shape[1]), dtype=self.mapped_item_content.dtype)
+            ext[: self.mapped_item_content.shape[0]] = self.mapped_item_content
+            self.mapped_item_content = ext
+            for i, iid in self.item.items():
+                self.mapped_item_content[iid] = self.source_item_content[i]
 
         #print(self.item_num, len(self.item.keys()))
         #raise Exception("debugging...")
@@ -408,14 +425,31 @@ class ColdStartMetaDataBuilder(object):
         self.source_item_content = None
         if user_content is not None:
             self.source_user_content = user_content
-            self.mapped_user_content = np.empty((user_content.shape[0], user_content.shape[1]))
+            n_u_buf = max(int(user_num), int(user_content.shape[0]))
+            self.mapped_user_content = np.empty((n_u_buf, user_content.shape[1]))
             self.user_content_dim = user_content.shape[-1]
         if item_content is not None:
             self.source_item_content = item_content
-            self.mapped_item_content = np.empty((item_content.shape[0], item_content.shape[1]))
+            n_i_buf = max(int(item_num), int(item_content.shape[0]))
+            self.mapped_item_content = np.empty((n_i_buf, item_content.shape[1]))
             self.item_content_dim = item_content.shape[-1]
 
         self.generate_set()
+
+        if user_content is not None and len(self.user) > self.mapped_user_content.shape[0]:
+            new_n = len(self.user)
+            ext = np.empty((new_n, self.mapped_user_content.shape[1]), dtype=self.mapped_user_content.dtype)
+            ext[: self.mapped_user_content.shape[0]] = self.mapped_user_content
+            self.mapped_user_content = ext
+            for u, uid in self.user.items():
+                self.mapped_user_content[uid] = self.source_user_content[u]
+        if item_content is not None and len(self.item) > self.mapped_item_content.shape[0]:
+            new_n = len(self.item)
+            ext = np.empty((new_n, self.mapped_item_content.shape[1]), dtype=self.mapped_item_content.dtype)
+            ext[: self.mapped_item_content.shape[0]] = self.mapped_item_content
+            self.mapped_item_content = ext
+            for i, iid in self.item.items():
+                self.mapped_item_content[iid] = self.source_item_content[i]
 
         self.user_num = user_num
         self.item_num = item_num
@@ -840,10 +874,12 @@ class DataBuilder(object):
     def get_user_id(self, u):
         if u in self.user:
             return self.user[u]
+        raise KeyError(f"user {u} not in current id table")
 
     def get_item_id(self, i):
         if i in self.item:
             return self.item[i]
+        raise KeyError(f"item {i} not in current id table")
 
     def training_size(self):
         return len(self.user), len(self.item), len(self.training_data)
@@ -921,6 +957,6 @@ class TorchGraphInterface(object):
     @staticmethod
     def convert_sparse_mat_to_tensor(X):
         coo = X.tocoo()
-        i = torch.LongTensor([coo.row, coo.col])
-        v = torch.from_numpy(coo.data).float()
-        return torch.sparse.FloatTensor(i, v, coo.shape)
+        indices = torch.from_numpy(np.vstack((coo.row, coo.col))).long()
+        values = torch.from_numpy(coo.data).float()
+        return torch.sparse_coo_tensor(indices, values, coo.shape).coalesce()
