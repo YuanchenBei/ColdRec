@@ -345,6 +345,7 @@ class AGNN(BaseColdStartTrainer):
         cold_item_idx = torch.tensor(self.data.mapped_cold_item_idx, dtype=torch.long, device=self.device)
         cold_user_idx = torch.tensor(self.data.mapped_cold_user_idx, dtype=torch.long, device=self.device)
         self.timer(start=True)
+        epoch = -1
         for epoch in range(self.maxEpoch):
             model.train()
             for n, batch in enumerate(next_batch_pairwise(self.data, self.batch_size)):
@@ -375,11 +376,12 @@ class AGNN(BaseColdStartTrainer):
                         e = min(s + ch, cold_user_idx.numel())
                         sl = cold_user_idx[s:e]
                         self.user_emb[sl] = model.generate_user_emb(sl, training=False)
-                if epoch % 5 == 0:
+                if epoch % self.eval_every == 0:
                     self.fast_evaluation(epoch, valid_type='all')
                     if self.early_stop_flag and self.early_stop_patience <= 0:
                         break
 
+        self.epochs_ran = (epoch + 1) if self.maxEpoch > 0 else 0
         self.timer(start=False)
         model.eval()
         self.user_emb, self.item_emb = self.best_user_emb, self.best_item_emb

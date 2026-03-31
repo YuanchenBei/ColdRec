@@ -39,6 +39,8 @@ class BaseColdStartTrainer(ABC):
         if self.early_stop_flag:
             self.early_stop_patience = self.args.early_stop
             self.max_early_stop_patience = self.args.early_stop
+        self.epochs_ran = 0
+        self.eval_every = max(1, int(getattr(self.args, 'eval_every', 1)))
 
     def print_basic_info(self):
         print('*' * 80)
@@ -283,6 +285,8 @@ class BaseColdStartTrainer(ABC):
         self.print_basic_info()
         print('Training Model...')
         self.train()
+        if getattr(self, 'epochs_ran', 0) == 0 and self.maxEpoch > 0:
+            self.epochs_ran = self.maxEpoch
         for test_type in ['all', 'cold', 'warm']:
             print('*' * 80)
             print(f'Testing under [{test_type}] setting...')

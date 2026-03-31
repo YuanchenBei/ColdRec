@@ -294,6 +294,7 @@ class CGRC(BaseColdStartTrainer):
         R_base = self.data.interaction_mat.tocsr()
         n_users, n_items = self.data.user_num, self.data.item_num
         self.timer(start=True)
+        epoch = -1
         for epoch in range(self.maxEpoch):
             model.train()
             for n, batch in enumerate(next_batch_cgrc(self.data, self.batch_size, self.ranking_neg)):
@@ -344,11 +345,12 @@ class CGRC(BaseColdStartTrainer):
 
             with torch.no_grad():
                 model.eval()
-                if epoch % 5 == 0:
+                if epoch % self.eval_every == 0:
                     self.fast_evaluation(epoch, valid_type='all')
                     if self.early_stop_flag and self.early_stop_patience <= 0:
                         break
 
+        self.epochs_ran = (epoch + 1) if self.maxEpoch > 0 else 0
         self.timer(start=False)
         model.eval()
         if self.best_state_dict is not None:

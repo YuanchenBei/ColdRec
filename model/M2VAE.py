@@ -62,6 +62,7 @@ class M2VAE(BaseColdStartTrainer):
             weight_decay=self.args.m2vae_weight_decay,
         )
         self.timer(start=True)
+        epoch = -1
         for epoch in range(self.maxEpoch):
             model.train()
             batch_iter = next_batch_pairwise_CCFCRec(
@@ -98,11 +99,12 @@ class M2VAE(BaseColdStartTrainer):
                 self.item_emb = model.item_embedding.clone()
                 cold_item_gen = model.generate_item_emb(self.data.mapped_cold_item_idx)
                 self.item_emb.data[self.data.mapped_cold_item_idx] = cold_item_gen
-                if epoch % 5 == 0:
+                if epoch % self.eval_every == 0:
                     self.fast_evaluation(epoch, valid_type='all')
                     if self.early_stop_flag and self.early_stop_patience <= 0:
                         break
 
+        self.epochs_ran = (epoch + 1) if self.maxEpoch > 0 else 0
         self.timer(start=False)
         model.eval()
         self.user_emb, self.item_emb = self.best_user_emb, self.best_item_emb

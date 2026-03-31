@@ -14,6 +14,7 @@ class Heater(BaseColdStartTrainer):
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr)
         crit = torch.nn.MSELoss()
         self.timer(start=True)
+        epoch = -1
         for epoch in range(self.maxEpoch):
             model.train()
             for n, batch in enumerate(next_batch_pairwise(self.data, self.batch_size)):
@@ -36,12 +37,13 @@ class Heater(BaseColdStartTrainer):
                 now_user_emb, now_item_emb = self.model()
                 self.user_emb = now_user_emb.clone()
                 self.item_emb = now_item_emb.clone()
-                if epoch % 5 == 0:
+                if epoch % self.eval_every == 0:
                     self.fast_evaluation(epoch, valid_type='all')
                     if self.early_stop_flag:
                         if self.early_stop_patience <= 0:
                             break
 
+        self.epochs_ran = (epoch + 1) if self.maxEpoch > 0 else 0
         self.timer(start=False)
         model.eval()
         self.user_emb, self.item_emb = self.best_user_emb, self.best_item_emb
@@ -82,9 +84,18 @@ class Heater_Learner(nn.Module):
         else:
             self.user_content = torch.tensor(self.data.mapped_user_content, dtype=torch.float32, requires_grad=False).to(device)
         self.embedding_dict = self._init_model()
-        self.heater_encoder = Heater_encoder(self.latent_size, 0, self.content_dim, [200, self.latent_size], self.latent_size,
-                                             self.args.alpha, self.args.n_expert, self.args.n_dropout)
-        self.embedding_dict = self._init_model()
+        h1 = int(getattr(self.args, 'heater_mlp_hidden', 200))
+        mlp_shape = [h1, self.latent_size]
+        self.heater_encoder = Heater_encoder(
+            self.latent_size,
+            0,
+            self.content_dim,
+            mlp_shape,
+            self.latent_size,
+            self.args.alpha,
+            self.args.n_expert,
+            self.args.n_dropout,
+        )
 
     def _init_model(self):
         embedding_dict = nn.ParameterDict({

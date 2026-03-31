@@ -19,6 +19,7 @@ class KNN(BaseColdStartTrainer):
         encoder = self.encoder.to(self.device)
         optimizer = torch.optim.Adam(encoder.parameters(), lr=self.lr)
         self.timer(start=True)
+        epoch = -1
         for epoch in range(self.maxEpoch):
             encoder.train()
             for n, batch in enumerate(next_batch_pairwise(self.data, self.batch_size)):
@@ -47,12 +48,13 @@ class KNN(BaseColdStartTrainer):
                     warm_user_content = self.data.mapped_user_content[self.data.mapped_warm_user_idx]
                     cold_generated_emb = self.knn_search(cold_user_content, warm_user_content, now_user_emb)
                     self.user_emb.data[self.data.mapped_cold_user_idx] = cold_generated_emb
-                if epoch % 5 == 0:
+                if epoch % self.eval_every == 0:
                     self.fast_evaluation(epoch, valid_type='all')
                     if self.early_stop_flag:
                         if self.early_stop_patience <= 0:
                             break
 
+        self.epochs_ran = (epoch + 1) if self.maxEpoch > 0 else 0
         self.timer(start=False)
         encoder.eval()
         self.user_emb, self.item_emb = self.best_user_emb, self.best_item_emb

@@ -18,6 +18,7 @@ class CCFCRec(BaseColdStartTrainer):
         model = self.model.to(self.device)
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr)
         self.timer(start=True)
+        epoch = -1
         for epoch in range(self.maxEpoch):
             model.train()
             for n, batch in enumerate(next_batch_pairwise_CCFCRec(self.data, self.batch_size, self.args.positive_number, self.args.negative_number, self.args.self_neg_number)):
@@ -77,12 +78,13 @@ class CCFCRec(BaseColdStartTrainer):
                 now_item_emb = self.model.item_embedding
                 self.user_emb = now_user_emb.clone()
                 self.item_emb = now_item_emb.clone()
-                if epoch % 5 == 0:
+                if epoch % self.eval_every == 0:
                     self.fast_evaluation(epoch, valid_type='all')
                     if self.early_stop_flag:
                         if self.early_stop_patience <= 0:
                             break
 
+        self.epochs_ran = (epoch + 1) if self.maxEpoch > 0 else 0
         self.timer(start=False)
         model.eval()
         self.user_emb, self.item_emb = self.best_user_emb, self.best_item_emb

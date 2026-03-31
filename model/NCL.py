@@ -11,14 +11,14 @@ import faiss
 class NCL(BaseColdStartTrainer):
     def __init__(self, config):
         super(NCL, self).__init__(config)
-        self.n_layers = config.layers
+        self.n_layers = self.args.layers
         self.model = LGCN_Encoder(self.data, self.emb_size, self.n_layers, self.device)
-        self.ssl_temp = config.tau
-        self.ssl_reg = config.ssl_reg
-        self.hyper_layers = config.hyper_layers
-        self.alpha = config.alpha
-        self.proto_reg = config.proto_reg
-        self.k = config.num_clusters
+        self.ssl_temp = self.args.tau
+        self.ssl_reg = self.args.ssl_reg
+        self.hyper_layers = self.args.hyper_layers
+        self.alpha = self.args.alpha
+        self.proto_reg = self.args.proto_reg
+        self.k = self.args.num_clusters
         self.user_centroids = None
         self.user_2cluster = None
         self.item_centroids = None
@@ -84,6 +84,7 @@ class NCL(BaseColdStartTrainer):
         model = self.model.to(self.device)
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr)
         self.timer(start=True)
+        epoch = -1
         for epoch in range(self.maxEpoch):
             model.train()
             if epoch >= 20:
@@ -118,12 +119,13 @@ class NCL(BaseColdStartTrainer):
             with torch.no_grad():
                 model.eval()
                 self.user_emb, self.item_emb, _ = model()
-                if epoch % 5 == 0:
+                if epoch % self.eval_every == 0:
                     self.fast_evaluation(epoch, valid_type='all')
                     if self.early_stop_flag:
                         if self.early_stop_patience <= 0:
                             break
 
+        self.epochs_ran = (epoch + 1) if self.maxEpoch > 0 else 0
         self.timer(start=False)
         model.eval()
         self.user_emb, self.item_emb = self.best_user_emb, self.best_item_emb

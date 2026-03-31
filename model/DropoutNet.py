@@ -14,6 +14,7 @@ class DropoutNet(BaseColdStartTrainer):
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr)
         crit = torch.nn.MSELoss()
         self.timer(start=True)
+        epoch = -1
         for epoch in range(self.maxEpoch):
             model.train()
             for n, batch in enumerate(next_batch_pairwise(self.data, self.batch_size)):
@@ -37,12 +38,13 @@ class DropoutNet(BaseColdStartTrainer):
                 now_user_emb, now_item_emb = self.model()
                 self.user_emb = now_user_emb.clone()
                 self.item_emb = now_item_emb.clone()
-                if epoch % 5 == 0:
+                if epoch % self.eval_every == 0:
                     self.fast_evaluation(epoch, valid_type='all')
                     if self.early_stop_flag:
                         if self.early_stop_patience <= 0:
                             break
 
+        self.epochs_ran = (epoch + 1) if self.maxEpoch > 0 else 0
         self.timer(start=False)
         model.eval()
         self.user_emb, self.item_emb = self.best_user_emb, self.best_item_emb
@@ -82,10 +84,13 @@ class DropoutNet_Learner(nn.Module):
         else:
             self.user_content = torch.tensor(self.data.mapped_user_content, dtype=torch.float32, requires_grad=False).to(device)
         self.embedding_dict = self._init_model()
+        h1 = int(getattr(self.args, 'dropoutnet_hidden1', 200))
+        h2 = int(getattr(self.args, 'dropoutnet_hidden2', 100))
+        hidden = [h1, h2]
         if self.args.cold_object == 'item':
-            self.deepcf_encoder = get_model(emb_size, 0, self.data.item_content_dim, [200, 100], emb_size)
+            self.deepcf_encoder = get_model(emb_size, 0, self.data.item_content_dim, hidden, emb_size)
         else:
-            self.deepcf_encoder = get_model(emb_size, self.data.user_content_dim, 0, [200, 100], emb_size)
+            self.deepcf_encoder = get_model(emb_size, self.data.user_content_dim, 0, hidden, emb_size)
 
     def _init_model(self):
         embedding_dict = nn.ParameterDict({

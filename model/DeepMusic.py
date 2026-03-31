@@ -13,6 +13,7 @@ class DeepMusic(BaseColdStartTrainer):
         model = self.model.to(self.device)
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr)
         self.timer(start=True)
+        epoch = -1
         for epoch in range(self.maxEpoch):
             model.train()
             for n, batch in enumerate(next_batch_pairwise(self.data, self.batch_size)):
@@ -44,12 +45,13 @@ class DeepMusic(BaseColdStartTrainer):
                 else:
                     cold_user_gen_emb = model.generate_user_emb(self.data.mapped_cold_user_idx)
                     self.user_emb.data[self.data.mapped_cold_user_idx] = cold_user_gen_emb
-                if epoch % 5 == 0:
+                if epoch % self.eval_every == 0:
                     self.fast_evaluation(epoch, valid_type='all')
                     if self.early_stop_flag:
                         if self.early_stop_patience <= 0:
                             break
 
+        self.epochs_ran = (epoch + 1) if self.maxEpoch > 0 else 0
         self.timer(start=False)
         model.eval()
         self.user_emb, self.item_emb = self.best_user_emb, self.best_item_emb

@@ -18,6 +18,7 @@ class VBPR(BaseColdStartTrainer):
         optimizer = torch.optim.Adagrad([self.model.P.weight, self.model.PQ2.weight, self.model.Q.weight], lr=lr1, weight_decay=0)
         optimizer2 = torch.optim.Adam([self.model.W], lr=lr2, weight_decay=0)
         self.timer(start=True)
+        epoch = -1
         for epoch in range(self.maxEpoch):
             model.train()
             for n, batch in enumerate(next_batch_pairwise(self.data, self.batch_size)):
@@ -35,12 +36,13 @@ class VBPR(BaseColdStartTrainer):
             with torch.no_grad():
                 model.eval()
                 self.user_emb_main, self.item_emb_main, self.user_emb_aux, self.item_emb_aux, self.w_value = self.model()
-                if epoch % 5 == 0:
+                if epoch % self.eval_every == 0:
                     self.fast_evaluation(epoch, valid_type='all')
                     if self.early_stop_flag:
                         if self.early_stop_patience <= 0:
                             break
 
+        self.epochs_ran = (epoch + 1) if self.maxEpoch > 0 else 0
         self.timer(start=False)
         model.eval()
         self.user_emb_main, self.item_emb_main, self.user_emb_aux, self.item_emb_aux, self.w_value = self.best_user_emb_main, self.best_item_emb_main, self.best_user_emb_aux, self.best_item_emb_aux, self.best_w

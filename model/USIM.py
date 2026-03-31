@@ -838,6 +838,7 @@ class USIM(BaseColdStartTrainer):
     def train(self):
         self.model.to(self.device)
         self.timer(start=True)
+        epoch = -1
         for epoch in range(self.maxEpoch):
             self.model.train()
             n_batches = 0
@@ -863,11 +864,12 @@ class USIM(BaseColdStartTrainer):
                 ic = self.model._item_content
                 self.user_emb = self.model.get_user_emb().detach().clone()
                 self.item_emb = self.model.get_item_emb(ic, warm, cold).detach().clone()
-                if epoch % 5 == 0:
+                if epoch % self.eval_every == 0:
                     self.fast_evaluation(epoch, valid_type='all')
                     if self.early_stop_flag and self.early_stop_patience <= 0:
                         break
 
+        self.epochs_ran = (epoch + 1) if self.maxEpoch > 0 else 0
         self.timer(start=False)
         self.model.eval()
         self.user_emb, self.item_emb = self.best_user_emb, self.best_item_emb
