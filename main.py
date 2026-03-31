@@ -8,7 +8,7 @@ import numpy as np
 import pickle
 from util.loader import DataLoader
 from util.utils import set_seed
-from config.model_param import model_specific_param
+from config.model_param import model_specific_param, _str2bool
 from model import AVAILABLE_MODELS
 from util.databuilder import ColdStartDataBuilder
 
@@ -93,18 +93,42 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--epochs', type=int, default=500)
     parser.add_argument('--layers', type=int, default=2)
     parser.add_argument('--topN', default='10,20')
-    parser.add_argument('--bs', type=int, default=2048, help='training batch size')
+    parser.add_argument('--bs', type=int, default=4096, help='training batch size')
     parser.add_argument('--emb_size', type=int, default=64)
     parser.add_argument('--lr', type=float, default=0.001)
     parser.add_argument('--reg', type=float, default=0.0001)
     parser.add_argument('--runs', type=int, default=1, help='model runs')
     parser.add_argument('--seed', type=int, default=2024)
-    parser.add_argument('--use_gpu', default=True, help='Whether to use CUDA')
-    parser.add_argument('--save_emb', default=True, help='Whether to save the user/item embeddings')
+    parser.add_argument(
+        '--use_gpu',
+        type=_str2bool,
+        nargs='?',
+        const=True,
+        default=True,
+        help='Whether to use CUDA (true/false; default true)',
+    )
+    parser.add_argument(
+        '--save_emb',
+        type=_str2bool,
+        nargs='?',
+        const=True,
+        default=True,
+        help='Whether to save user/item embeddings (true/false; default true)',
+    )
     parser.add_argument('--gpu_id', type=int, default=0, help='CUDA id')
     parser.add_argument('--cold_object', default='item', type=str, choices=['user', 'item'])
-    parser.add_argument('--backbone', default='MF')
+    parser.add_argument(
+        '--backbone',
+        default='MF',
+        help='Name tag for ./emb/..._{backbone}_*.pt (pretrain / KNN). Train that checkpoint with the same --emb_size (default 64).',
+    )
     parser.add_argument('--early_stop', type=int, default=10, help='Early stopping patience. If set to 0, early stopping is disabled.')
+    parser.add_argument(
+        '--eval_every',
+        type=int,
+        default=1,
+        help='Run validation (fast_evaluation) every N training epochs (>=1). Default 1 = every epoch.',
+    )
     parser.add_argument(
         '--result_dir', type=str, default='./result',
         help='Base directory when --result_file is not set (uses <result_dir>/<model>/).')
@@ -152,7 +176,15 @@ if __name__ == '__main__':
                 results[setting]['recall'][i].append(test_results[i][2])
                 results[setting]['ndcg'][i].append(test_results[i][3])
 
-        time_results.append((model.train_end_time - model.train_start_time) / args.epochs)
+        elapsed = model.train_end_time - model.train_start_time
+        er = int(getattr(model, 'epochs_ran', 0) or 0)
+        if er > 0:
+            epochs_done = er
+        elif args.epochs > 0:
+            epochs_done = args.epochs
+        else:
+            epochs_done = 1
+        time_results.append(elapsed / epochs_done)
 
     for i, top_n in enumerate(top_Ns):
         print("*" * 80)
@@ -170,7 +202,7 @@ if __name__ == '__main__':
 
     print(f"Efficiency Performance:")
     mean_time, std_time = np.mean(time_results), np.std(time_results)
-    print(f"Time: {mean_time:.4f}±{std_time:.4f} seconds per epoch.")
+    print(f"Time: {mean_time:.4f}±{std_time:.4f} seconds per completed training epoch.")
 
     # --- Write method, hyperparameters, and metrics to result file ---
     def _args_to_serializable(ns):
@@ -240,8 +272,8 @@ if __name__ == '__main__':
     lines.extend([
         '',
         '--- Efficiency ---',
-        f'seconds_per_epoch_mean: {float(mean_time):.6f}',
-        f'seconds_per_epoch_std: {float(std_time):.6f}',
+        f'seconds_per_completed_epoch_mean: {float(mean_time):.6f}',
+        f'seconds_per_completed_epoch_std: {float(std_time):.6f}',
         '',
         '--- JSON (machine-readable) ---',
         json.dumps(
@@ -249,7 +281,10 @@ if __name__ == '__main__':
                 'method': args.model,
                 'hyperparameters': _args_to_serializable(args),
                 'metrics': metrics_payload,
-                'efficiency': {'seconds_per_epoch_mean': float(mean_time), 'seconds_per_epoch_std': float(std_time)},
+                'efficiency': {
+                    'seconds_per_completed_epoch_mean': float(mean_time),
+                    'seconds_per_completed_epoch_std': float(std_time),
+                },
             },
             indent=2,
             ensure_ascii=False,
