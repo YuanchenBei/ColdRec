@@ -18,7 +18,7 @@ def model_specific_param(model_name, parser, available_models):
         parser.add_argument('--knn_num', type=int, default=5)
     elif model_name == 'AGNN':
         # Align AGNN-related defaults with the official implementation when possible.
-        parser.set_defaults(lr=5e-4, bs=128, emb_size=30, epochs=20)
+        parser.set_defaults(lr=5e-4, bs=4096, emb_size=64, epochs=20)
         parser.add_argument('--agnn_knn_k', type=int, default=10, help='Top-k warm neighbors for AGNN aggregation')
         parser.add_argument('--agnn_dropout', type=float, default=0.5, help='Dropout rate in AGNN content encoder')
         parser.add_argument('--agnn_rank_weight', type=float, default=1.0, help='Weight of generated-embedding ranking loss')
@@ -40,13 +40,13 @@ def model_specific_param(model_name, parser, available_models):
         )
     elif model_name == 'M2VAE':
         # Align defaults with the official ML-20M implementation when possible.
-        parser.set_defaults(lr=5e-5, bs=2048, emb_size=128, epochs=10)
+        parser.set_defaults(lr=5e-5, bs=4096, emb_size=64, epochs=10)
         parser.add_argument('--positive_number', type=int, default=10, help='contrast positive number')
         parser.add_argument('--negative_number', type=int, default=40, help='contrast negative number')
         parser.add_argument('--self_neg_number', type=int, default=40, help='self contrast negative number')
-        parser.add_argument('--attr_present_dim', type=int, default=128, help='attribute representation dimension')
-        parser.add_argument('--implicit_dim', type=int, default=128, help='u/i latent dimension')
-        parser.add_argument('--cat_implicit_dim', type=int, default=128, help='decoder hidden dimension')
+        parser.add_argument('--attr_present_dim', type=int, default=64, help='attribute representation dimension')
+        parser.add_argument('--implicit_dim', type=int, default=64, help='u/i latent dimension')
+        parser.add_argument('--cat_implicit_dim', type=int, default=64, help='decoder hidden dimension')
         parser.add_argument('--tau', type=float, default=0.1, help='contrastive temperature')
         parser.add_argument('--m2vae_weight_decay', type=float, default=0.1, help='optimizer weight decay')
         parser.add_argument('--m2vae_kld_weight', type=float, default=1.0, help='weight of KL divergence term')
@@ -65,12 +65,18 @@ def model_specific_param(model_name, parser, available_models):
         parser.add_argument('--gamma', type=float, default=0.1)
         parser.add_argument('--tws', type=int, default=0, choices=[0, 1])
         parser.add_argument('--freq_coef_M', type=float, default=4)
+        parser.add_argument(
+            '--aldi_hidden',
+            type=int,
+            default=200,
+            help='ALDI mapper hidden size (official cold_start/ALDI.py uses 200)',
+        )
     elif model_name == 'GAR':
         parser.add_argument('--alpha', type=float, default=0.05, help='GAR parameter alpha')
         parser.add_argument('--beta', type=float, default=0.1, help='GAR parameter beta')
     elif model_name == 'CGRC':
         # SIGIR'24 Content-based Graph Reconstruction for Cold-start Item Recommendation (single-vector content; L_M off).
-        parser.set_defaults(lr=1e-3, bs=2048, emb_size=64, epochs=500)
+        parser.set_defaults(lr=1e-3, bs=4096, emb_size=64, epochs=500)
         parser.add_argument(
             '--cgrc_mask_rho',
             type=float,
@@ -118,7 +124,7 @@ def model_specific_param(model_name, parser, available_models):
             help='If pretrain: train loaded embeddings (true) or freeze (false); default false')
     elif model_name == 'FSGNN':
         # FS-GNN (AAAI'25) integrated with ColdRec: content-based features + BPR (see model/FSGNN.py).
-        parser.set_defaults(lr=0.005, reg=0.0005, emb_size=64, epochs=500, bs=2048)
+        parser.set_defaults(lr=0.005, reg=0.0005, emb_size=64, epochs=500, bs=4096)
         parser.add_argument(
             '--fsgnn_lambda_fc', type=float, default=0.5, help='Weight for feature-completion MSE L_fc'
         )
@@ -215,10 +221,28 @@ def model_specific_param(model_name, parser, available_models):
         )
     elif model_name == 'DropoutNet':
         parser.add_argument('--n_dropout', type=float, default=0.5, help='Dropout rate of the network training')
+        parser.add_argument(
+            '--dropoutnet_hidden1',
+            type=int,
+            default=200,
+            help='DeepCF first hidden width (default matches prior hard-coded [200,100])',
+        )
+        parser.add_argument(
+            '--dropoutnet_hidden2',
+            type=int,
+            default=100,
+            help='DeepCF second hidden width (output MLP maps to emb_size)',
+        )
     elif model_name == 'Heater':
         parser.add_argument('--n_expert', type=int, default=5, help='Number of experts')
         parser.add_argument('--n_dropout', type=float, default=0.5, help='Dropout rate of the network training')
         parser.add_argument('--alpha', type=float, default=0.5)
+        parser.add_argument(
+            '--heater_mlp_hidden',
+            type=int,
+            default=200,
+            help='Heater DenseFC first hidden; second width is emb_size (matches prior [200, rank])',
+        )
     elif model_name == 'MetaEmbedding':
         parser.add_argument('--alpha', type=float, default=0.5)
     elif model_name == 'GoRec':
@@ -257,6 +281,21 @@ def model_specific_param(model_name, parser, available_models):
         parser.add_argument('--p_emb', type=list, default=[0.05, 0], help='lr and reg for id embeddings')
         parser.add_argument('--p_ctx', type=list, default=[0.05, 0.01], help='lr and reg for context features')
         parser.add_argument('--p_proj', type=list, default=[0.05, 0.01], help='lr and reg for wei only')
+    elif model_name == 'SimGCL':
+        parser.add_argument('--cl_rate', type=float, default=0.5, help='Weight of contrastive loss')
+        parser.add_argument('--tau', type=float, default=0.2, help='InfoNCE temperature')
+        parser.add_argument('--eps', type=float, default=0.1, help='Perturbation scale')
+    elif model_name == 'XSimGCL':
+        parser.add_argument('--cl_rate', type=float, default=0.5, help='Weight of contrastive loss')
+        parser.add_argument('--tau', type=float, default=0.2, help='InfoNCE temperature')
+        parser.add_argument('--eps', type=float, default=0.1, help='Perturbation scale')
+    elif model_name == 'NCL':
+        parser.add_argument('--tau', type=float, default=0.2, help='SSL / ProtoNCE temperature')
+        parser.add_argument('--ssl_reg', type=float, default=1e-6, help='Weight of SSL contrastive term')
+        parser.add_argument('--proto_reg', type=float, default=1e-7, help='Weight of ProtoNCE term')
+        parser.add_argument('--alpha', type=float, default=1.0, help='SSL item loss multiplier')
+        parser.add_argument('--hyper_layers', type=int, default=1, help='Hypergraph propagation layers')
+        parser.add_argument('--num_clusters', type=int, default=20, help='K-means clusters for ProtoNCE')
     elif model_name in available_models:
         pass
     else:
