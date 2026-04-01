@@ -1,5 +1,6 @@
 import sys
 sys.path.append('..')
+import math
 from abc import ABC, abstractmethod
 from typing import Dict, List, Tuple, Union, Optional, Any
 import torch
@@ -205,14 +206,30 @@ class BaseColdStartTrainer(ABC):
         print('*' * 80)
         print(f'[{test_type} setting] The result of %s:\n%s' % (self.model_name, ''.join(self.result)))
 
+    @staticmethod
+    def _metrics_dict_from_measure(measure: List[str]) -> Dict[str, float]:
+        out: Dict[str, float] = {}
+        for m in measure[1:]:
+            k, v = m.strip().split(':')
+            out[k] = float(v)
+        return out
+
+    @staticmethod
+    def _metrics_all_finite(performance: Dict[str, float]) -> bool:
+        return all(math.isfinite(v) for v in performance.values())
+
     def fast_evaluation(self, epoch: int, valid_type: str = 'all') -> List[str]:
         """
         Perform fast evaluation during training.
-        
+
+        Early stopping uses strict improvement on validation **NDCG** at **max(topN)** —
+        the same cutoff as this evaluation. Equal or worse NDCG consumes patience.
+        Non-finite metrics (e.g. after numerical failure) never count as improvement.
+
         Args:
             epoch: Current training epoch
             valid_type: Type of validation ('warm', 'cold', or 'all')
-            
+
         Returns:
             List of performance metrics
         """
@@ -227,53 +244,64 @@ class BaseColdStartTrainer(ABC):
         print(f'Evaluating the model under the {valid_type} setting...')
         rec_list = self.valid(valid_type)
         measure, _ = ranking_evaluation(valid_set, rec_list, [self.max_N])
+        performance = self._metrics_dict_from_measure(measure)
+        finite = self._metrics_all_finite(performance)
+
         if len(self.bestPerformance) > 0:
-            count = 0
-            performance = {}
-            for m in measure[1:]:
-                k, v = m.strip().split(':')
-                performance[k] = float(v)
-            for k in self.bestPerformance[1]:
-                if self.bestPerformance[1][k] > performance[k]:
-                    count += 1
-                else:
-                    count -= 1
-            if count < 0:
-                self.bestPerformance[1] = performance
-                self.bestPerformance[0] = epoch + 1
-                self.save()
-                if self.early_stop_flag:
-                    self.early_stop_patience = self.max_early_stop_patience
-            else:
+            if not finite:
                 if self.early_stop_flag:
                     self.early_stop_patience -= 1
+                print(
+                    'Warning: validation metrics are non-finite; '
+                    'early-stop patience decreased, best checkpoint unchanged.'
+                )
+            else:
+                best_ndcg = self.bestPerformance[1]['NDCG']
+                cur_ndcg = performance['NDCG']
+                if cur_ndcg > best_ndcg:
+                    self.bestPerformance[1] = performance
+                    self.bestPerformance[0] = epoch + 1
+                    self.save()
+                    if self.early_stop_flag:
+                        self.early_stop_patience = self.max_early_stop_patience
+                else:
+                    if self.early_stop_flag:
+                        self.early_stop_patience -= 1
         else:
-            self.bestPerformance.append(epoch + 1)
-            performance = {}
-            for m in measure[1:]:
-                k, v = m.strip().split(':')
-                performance[k] = float(v)
-            self.bestPerformance.append(performance)
-            self.save()
+            if finite:
+                self.bestPerformance.append(epoch + 1)
+                self.bestPerformance.append(performance)
+                self.save()
+            elif self.early_stop_flag:
+                self.early_stop_patience -= 1
+                print(
+                    'Warning: first validation has non-finite metrics; '
+                    'best checkpoint not initialized yet.'
+                )
+
         print('-' * 120)
         print('Performance ' + ' (Top-' + str(self.max_N) + ' Recommendation)')
-        measure = [m.strip() for m in measure[1:]]
+        measure_lines = [m.strip() for m in measure[1:]]
         print('*Current Performance*')
-        print('Epoch:', str(epoch + 1) + ',', '  |  '.join(measure))
-        bp = ''
-        bp += 'Hit Ratio' + ':' + str(self.bestPerformance[1]['Hit Ratio']) + '  |  '
-        bp += 'Precision' + ':' + str(self.bestPerformance[1]['Precision']) + '  |  '
-        bp += 'Recall' + ':' + str(self.bestPerformance[1]['Recall']) + '  |  '
-        bp += 'NDCG' + ':' + str(self.bestPerformance[1]['NDCG'])
-        print(f'*Best {valid_type} Performance* ')
-        print('Epoch:', str(self.bestPerformance[0]) + ',', bp)
+        print('Epoch:', str(epoch + 1) + ',', '  |  '.join(measure_lines))
+        if len(self.bestPerformance) > 0:
+            bp = (
+                'Hit Ratio' + ':' + str(self.bestPerformance[1]['Hit Ratio']) + '  |  '
+                + 'Precision' + ':' + str(self.bestPerformance[1]['Precision']) + '  |  '
+                + 'Recall' + ':' + str(self.bestPerformance[1]['Recall']) + '  |  '
+                + 'NDCG' + ':' + str(self.bestPerformance[1]['NDCG'])
+            )
+            print(f'*Best {valid_type} Performance* ')
+            print('Epoch:', str(self.bestPerformance[0]) + ',', bp)
+        else:
+            print(f'*Best {valid_type} Performance* not initialized (waiting for finite validation).')
         if self.early_stop_flag:
             if self.early_stop_patience <= 0:
                 print(f"Stopping early at epoch {epoch + 1}.")
             else:
                 print(f"Early stopping patience left: {self.early_stop_patience}.")
         print('-' * 120)
-        return measure
+        return measure_lines
 
     def run(self) -> None:
         """
