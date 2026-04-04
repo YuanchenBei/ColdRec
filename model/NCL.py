@@ -16,6 +16,11 @@ class NCL(BaseColdStartTrainer):
         self.ssl_temp = self.args.tau
         self.ssl_reg = self.args.ssl_reg
         self.hyper_layers = self.args.hyper_layers
+        if self.hyper_layers * 2 > self.n_layers:
+            raise ValueError(
+                "NCL expects emb_list[hyper_layers*2] with len(emb_list)==layers+1; "
+                f"need hyper_layers*2 <= layers, got hyper_layers={self.hyper_layers}, layers={self.n_layers}."
+            )
         self.alpha = self.args.alpha
         self.proto_reg = self.args.proto_reg
         self.k = self.args.num_clusters

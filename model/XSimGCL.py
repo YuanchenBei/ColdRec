@@ -11,6 +11,11 @@ class XSimGCL(BaseColdStartTrainer):
     def __init__(self, config):
         super(XSimGCL, self).__init__(config)
         self.n_layers = self.args.layers
+        if not (1 <= self.args.l_cl <= self.n_layers):
+            raise ValueError(
+                "XSimGCL requires 1 <= l_cl <= layers (contrastive snapshot at GCN layer l_cl); "
+                f"got l_cl={self.args.l_cl}, layers={self.n_layers}."
+            )
         self.model = XSimGCL_Encoder(self.args, self.data, self.emb_size, self.n_layers, self.device)
 
     def train(self):
