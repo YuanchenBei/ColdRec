@@ -289,6 +289,12 @@ def model_specific_param(model_name, parser, available_models):
         parser.add_argument('--cl_rate', type=float, default=0.5, help='Weight of contrastive loss')
         parser.add_argument('--tau', type=float, default=0.2, help='InfoNCE temperature')
         parser.add_argument('--eps', type=float, default=0.1, help='Perturbation scale')
+        parser.add_argument(
+            '--l_cl',
+            type=int,
+            default=2,
+            help='1-based GCN layer index for contrastive branch (SELFRec l_star); must satisfy 1 <= l_cl <= layers.',
+        )
     elif model_name == 'NCL':
         parser.add_argument('--tau', type=float, default=0.2, help='SSL / ProtoNCE temperature')
         parser.add_argument('--ssl_reg', type=float, default=1e-6, help='Weight of SSL contrastive term')
