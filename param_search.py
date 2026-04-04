@@ -121,16 +121,23 @@ def _apply_optuna_suggestions(trial, args: argparse.Namespace) -> None:
         args.eps = trial.suggest_categorical('eps', [0.1, 0.2, 0.3, 0.4, 0.5])
     elif m == 'XSimGCL':
         args.layers = trial.suggest_int('layers', 1, 3)
+        args.l_cl = trial.suggest_int('l_cl', 1, args.layers)
         args.cl_rate = trial.suggest_categorical('cl_rate', [0.0, 0.2, 0.4, 0.5, 0.6, 0.8, 1.0])
         args.tau = trial.suggest_categorical('tau', [0.2, 0.4, 0.6, 0.8, 1.0])
         args.eps = trial.suggest_categorical('eps', [0.1, 0.2, 0.3, 0.4, 0.5])
     elif m == 'NCL':
+        # LGCN_Encoder builds emb_list of length (layers+1); train() uses emb_list[hyper_layers*2].
+        # Valid indices are 0..layers, so require hyper_layers*2 <= layers.
         args.layers = trial.suggest_int('layers', 1, 3)
+        hl_max = args.layers // 2
+        if hl_max < 1:
+            args.hyper_layers = 0
+        else:
+            args.hyper_layers = trial.suggest_int('hyper_layers', 1, hl_max)
         args.alpha = trial.suggest_categorical('alpha', [0.5, 1.0, 1.5, 2.0])
         args.ssl_reg = _suggest_float_log(trial, 'ssl_reg', 1e-8, 1e-4)
         args.proto_reg = _suggest_float_log(trial, 'proto_reg', 1e-8, 1e-4)
         args.tau = trial.suggest_categorical('tau', [0.01, 0.05, 0.1, 0.2, 0.5])
-        args.hyper_layers = trial.suggest_int('hyper_layers', 1, 3)
         args.num_clusters = trial.suggest_categorical(
             'num_clusters', [20, 50, 80, 100, 200, 500]
         )
