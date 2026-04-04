@@ -21,8 +21,7 @@
   - [💐 Acknowledgements](#-acknowledgements)
 
 🔧 **TODO**
-We are now enhancing the codebase for user-friendly:
-- [ ] Enforce a consistent code style.
+We have enhanced the codebase for user-friendly:
 - [x] Add representative new models.
 - [x] Redundancies removal and input type standardization.
 - [x] Fix bugs and optimize the toolkit efficiency mentioned in the issues. (Thanks for that!)
@@ -119,3 +118,13 @@ The codebase architecture of ColdRec on some foundational operators is based on 
 
 The suggestions provided by **open-source community users** are of great help in improving this framework. Thanks to them!
 
+---
+## 📜 Citation
+``` bibtex
+@article{zhang2025cold,
+  title={Cold-start recommendation towards the era of large language models (llms): A comprehensive survey and roadmap},
+  author={Zhang, Weizhi and Bei, Yuanchen and Yang, Liangwei and Zou, Henry Peng and Zhou, Peilin and Liu, Aiwei and Li, Yinghui and Chen, Hao and Wang, Jianling and Wang, Yu and others},
+  journal={arXiv preprint arXiv:2501.01945},
+  year={2025}
+}
+```
