@@ -56,8 +56,8 @@ class XSimGCL(BaseColdStartTrainer):
             torch.save(self.item_emb, f"./emb/{self.args.dataset}_cold_{self.args.cold_object}_{self.args.model}_item_emb.pt")
 
     def cal_cl_loss(self, idx, user_view1,user_view2,item_view1,item_view2):
-        u_idx = torch.unique(torch.Tensor(idx[0]).type(torch.long)).cuda()
-        i_idx = torch.unique(torch.Tensor(idx[1]).type(torch.long)).cuda()
+        u_idx = torch.unique(torch.as_tensor(idx[0], dtype=torch.long, device=self.device))
+        i_idx = torch.unique(torch.as_tensor(idx[1], dtype=torch.long, device=self.device))
         user_cl_loss = InfoNCE(user_view1[u_idx], user_view2[u_idx], self.args.tau)
         item_cl_loss = InfoNCE(item_view1[i_idx], item_view2[i_idx], self.args.tau)
         return user_cl_loss + item_cl_loss

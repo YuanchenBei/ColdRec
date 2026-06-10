@@ -92,7 +92,7 @@ class CLCRec_Learner(nn.Module):
         self.att_weight_2 = nn.Parameter(nn.init.kaiming_normal_(torch.rand((emb_size, emb_size))))
         self.bias = nn.Parameter(nn.init.kaiming_normal_(torch.rand((emb_size, 1))))
         self.att_sum_layer = nn.Linear(emb_size, emb_size)
-        self.num_sample = 0.5
+        self.num_sample = float(getattr(self.args, 'num_sample', 0.5))
         self.embedding_dict = self._init_model()
 
     def _init_model(self):

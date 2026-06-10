@@ -51,8 +51,8 @@ class SimGCL(BaseColdStartTrainer):
             torch.save(self.item_emb, f"./emb/{self.args.dataset}_cold_{self.args.cold_object}_{self.args.model}_item_emb.pt")
 
     def cal_cl_loss(self, idx):
-        u_idx = torch.unique(torch.Tensor(idx[0]).type(torch.long)).cuda()
-        i_idx = torch.unique(torch.Tensor(idx[1]).type(torch.long)).cuda()
+        u_idx = torch.unique(torch.as_tensor(idx[0], dtype=torch.long, device=self.device))
+        i_idx = torch.unique(torch.as_tensor(idx[1], dtype=torch.long, device=self.device))
         user_view_1, item_view_1 = self.model(perturbed=True)
         user_view_2, item_view_2 = self.model(perturbed=True)
         user_cl_loss = InfoNCE(user_view_1[u_idx], user_view_2[u_idx], self.args.tau)

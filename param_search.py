@@ -382,8 +382,8 @@ if __name__ == '__main__':
         type=_str2bool,
         nargs='?',
         const=True,
-        default=True,
-        help='Whether to save embeddings (true/false; default true)',
+        default=False,
+        help='Whether to save embeddings (true/false; default false for Optuna searches)',
     )
     parser.add_argument('--gpu_id', type=int, default=0, help='CUDA id')
     parser.add_argument('--cold_object', default='item', type=str, choices=['user', 'item'])

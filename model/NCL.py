@@ -36,14 +36,22 @@ class NCL(BaseColdStartTrainer):
         self.item_centroids, self.item_2cluster = self.run_kmeans(item_embeddings)
 
     def run_kmeans(self, x):
-        """Run K-means algorithm to get k clusters of the input tensor x        """
-        kmeans = faiss.Kmeans(d=self.emb_size, k=self.k, gpu=True)
-        kmeans.train(x)
+        """Run K-means and keep outputs on the active trainer device."""
+        x = np.asarray(x, dtype=np.float32)
+        use_gpu = self.device.type == 'cuda' and torch.cuda.is_available()
+        try:
+            kmeans = faiss.Kmeans(d=self.emb_size, k=self.k, gpu=use_gpu)
+            kmeans.train(x)
+        except Exception as exc:
+            if not use_gpu:
+                raise
+            print(f'NCL: GPU faiss KMeans failed ({exc}); falling back to CPU faiss.')
+            kmeans = faiss.Kmeans(d=self.emb_size, k=self.k, gpu=False)
+            kmeans.train(x)
         cluster_cents = kmeans.centroids
         _, I = kmeans.index.search(x, 1)
-        # convert to cuda Tensors for broadcast
-        centroids = torch.Tensor(cluster_cents).cuda()
-        node2cluster = torch.LongTensor(I).squeeze().cuda()
+        centroids = torch.as_tensor(cluster_cents, dtype=torch.float32, device=self.device)
+        node2cluster = torch.as_tensor(I, dtype=torch.long, device=self.device).squeeze()
         return centroids, node2cluster
 
     def ProtoNCE_loss(self, initial_emb, user_idx, item_idx):
