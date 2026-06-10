@@ -251,13 +251,15 @@ def next_batch_pairwise_CCFCRec(data, batch_size, positive_number, negative_numb
                 neg_user = choice(user_list)
             neg_u_idx.append(data.user[neg_user])
             positive_items_ = data.training_set_u[user]
-            pos_i_list.append(list(np.random.choice(list(positive_items_), positive_number, replace=True)))
+            pos_i_list.append(
+                [data.item[x] for x in np.random.choice(list(positive_items_), positive_number, replace=True)]
+            )
             tmp_neg_i_list = []
             for m in range(positive_number*negative_number):
                 neg_item = choice(item_list)
                 while neg_item in data.training_set_u[user]:
                     neg_item = choice(item_list)
-                tmp_neg_i_list.append(neg_item)
+                tmp_neg_i_list.append(data.item[neg_item])
             for mm in range(positive_number):
                 start_idx = negative_number * mm
                 end_idx = negative_number * (mm + 1)
@@ -331,4 +333,3 @@ def process_bar(num, total):
     import sys
     sys.stdout.write(r)
     sys.stdout.flush()
-

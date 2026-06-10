@@ -121,6 +121,8 @@ class BaseColdStartTrainer(ABC):
         for i in range(0, len(data_set), batch_size):
             batch_users = list(data_set.keys())[i:i + batch_size]
             batch_candidates = self.batch_predict(batch_users)
+            if isinstance(batch_candidates, np.ndarray):
+                batch_candidates = torch.as_tensor(batch_candidates, device=self.device)
             for j, user in enumerate(batch_users):
                 candidates = batch_candidates[j]
                 rated_list = list(self.data.training_set_u[user].keys())

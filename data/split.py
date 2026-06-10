@@ -1,6 +1,7 @@
 import pickle
 import random
 import argparse
+import ast
 import numpy as np
 import pandas as pd
 from pprint import pprint
@@ -19,8 +20,8 @@ parser.add_argument('--cold_split', nargs='?', default='[0.5, 0.5]',
                     help="For cold-start validation and cold-start testing")
 parser.add_argument('--cold_object', type=str, default='item', choices=['user', 'item'])
 args = parser.parse_args()
-args.warm_split = eval(args.warm_split)
-args.cold_split = eval(args.cold_split)
+args.warm_split = ast.literal_eval(args.warm_split)
+args.cold_split = ast.literal_eval(args.cold_split)
 pprint(vars(args))
 
 # set seed

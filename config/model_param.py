@@ -1,4 +1,5 @@
 import argparse
+import ast
 
 
 def _str2bool(v):
@@ -11,6 +12,25 @@ def _str2bool(v):
     if s in ('0', 'false', 'f', 'no', 'n', 'off'):
         return False
     raise argparse.ArgumentTypeError(f'expected a boolean value, got {v!r}')
+
+
+def _float_pair(v):
+    """Parse optimizer hyperparameters like "0.05,0" or "[0.05, 0]"."""
+    if isinstance(v, (list, tuple)):
+        values = list(v)
+    else:
+        s = str(v).strip()
+        try:
+            parsed = ast.literal_eval(s)
+        except (SyntaxError, ValueError):
+            parsed = s.split(',')
+        values = list(parsed) if isinstance(parsed, (list, tuple)) else [parsed]
+    if len(values) != 2:
+        raise argparse.ArgumentTypeError(f'expected two floats, got {v!r}')
+    try:
+        return [float(values[0]), float(values[1])]
+    except (TypeError, ValueError) as exc:
+        raise argparse.ArgumentTypeError(f'expected two floats, got {v!r}') from exc
 
 
 def model_specific_param(model_name, parser, available_models):
@@ -270,17 +290,17 @@ def model_specific_param(model_name, parser, available_models):
             help='Optional path to pretrained content_mapper state_dict (.pt), like official MLP_*.pt',
         )
     elif model_name == 'VBPR':
-        parser.add_argument('--p_emb', type=list, default=[0.05, 0], help='lr and reg for id embeddings')
-        parser.add_argument('--p_ctx', type=list, default=[0.05, 0.01], help='lr and reg for context features')
+        parser.add_argument('--p_emb', type=_float_pair, default=[0.05, 0.0], help='lr and reg for id embeddings')
+        parser.add_argument('--p_ctx', type=_float_pair, default=[0.05, 0.01], help='lr and reg for context features')
     elif model_name == 'AMR':
-        parser.add_argument('--p_emb', type=list, default=[0.05, 0], help='lr and reg for id embeddings')
-        parser.add_argument('--p_ctx', type=list, default=[0.05, 0.01], help='lr and reg for context features')
+        parser.add_argument('--p_emb', type=_float_pair, default=[0.05, 0.0], help='lr and reg for id embeddings')
+        parser.add_argument('--p_ctx', type=_float_pair, default=[0.05, 0.01], help='lr and reg for context features')
         parser.add_argument('--eps', type=float, default=0.1, help='epsilong for noises')
         parser.add_argument('--lmd', type=float, default=1, help='balance the adv')
     elif model_name == 'MTPR':
-        parser.add_argument('--p_emb', type=list, default=[0.05, 0], help='lr and reg for id embeddings')
-        parser.add_argument('--p_ctx', type=list, default=[0.05, 0.01], help='lr and reg for context features')
-        parser.add_argument('--p_proj', type=list, default=[0.05, 0.01], help='lr and reg for wei only')
+        parser.add_argument('--p_emb', type=_float_pair, default=[0.05, 0.0], help='lr and reg for id embeddings')
+        parser.add_argument('--p_ctx', type=_float_pair, default=[0.05, 0.01], help='lr and reg for context features')
+        parser.add_argument('--p_proj', type=_float_pair, default=[0.05, 0.01], help='lr and reg for wei only')
     elif model_name == 'SimGCL':
         parser.add_argument('--cl_rate', type=float, default=0.5, help='Weight of contrastive loss')
         parser.add_argument('--tau', type=float, default=0.2, help='InfoNCE temperature')
@@ -309,4 +329,3 @@ def model_specific_param(model_name, parser, available_models):
                          f"Available models: {list(available_models.keys())}")
 
     return parser
-
