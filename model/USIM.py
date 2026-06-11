@@ -834,6 +834,12 @@ class USIM(BaseColdStartTrainer):
                 'USIM currently only supports item cold-start, user cold-start is not supported yet'
             )
         self.model = USIMCore(self.args, self.data, self.device)
+        self._warm_item_idx_t = torch.as_tensor(
+            self.data.mapped_warm_item_idx, dtype=torch.long, device=self.device
+        )
+        self._cold_item_idx_t = torch.as_tensor(
+            self.data.mapped_cold_item_idx, dtype=torch.long, device=self.device
+        )
 
     def train(self):
         self.model.to(self.device)
@@ -855,15 +861,11 @@ class USIM(BaseColdStartTrainer):
 
             with torch.no_grad():
                 self.model.eval()
-                warm = torch.as_tensor(
-                    self.data.mapped_warm_item_idx, dtype=torch.long, device=self.device
-                )
-                cold = torch.as_tensor(
-                    self.data.mapped_cold_item_idx, dtype=torch.long, device=self.device
-                )
                 ic = self.model._item_content
                 self.user_emb = self.model.get_user_emb().detach().clone()
-                self.item_emb = self.model.get_item_emb(ic, warm, cold).detach().clone()
+                self.item_emb = self.model.get_item_emb(
+                    ic, self._warm_item_idx_t, self._cold_item_idx_t
+                ).detach().clone()
                 if epoch % self.eval_every == 0:
                     self.fast_evaluation(epoch, valid_type='all')
                     if self.early_stop_flag and self.early_stop_patience <= 0:
@@ -885,15 +887,11 @@ class USIM(BaseColdStartTrainer):
 
     def save(self):
         with torch.no_grad():
-            warm = torch.as_tensor(
-                self.data.mapped_warm_item_idx, dtype=torch.long, device=self.device
-            )
-            cold = torch.as_tensor(
-                self.data.mapped_cold_item_idx, dtype=torch.long, device=self.device
-            )
             ic = self.model._item_content
             self.best_user_emb = self.model.get_user_emb().detach().clone()
-            self.best_item_emb = self.model.get_item_emb(ic, warm, cold).detach().clone()
+            self.best_item_emb = self.model.get_item_emb(
+                ic, self._warm_item_idx_t, self._cold_item_idx_t
+            ).detach().clone()
 
     def predict(self, u):
         with torch.no_grad():

@@ -272,10 +272,9 @@ class M2VAE_Learner(nn.Module):
         attribute = self.item_content[i_idx]
         batch_size = i_idx.shape[0]
         z_v = torch.matmul(torch.matmul(self.attr_matrix, self.attr_W1) + self.attr_b1.squeeze(), self.attr_W2).squeeze(-1)
-        z_v = z_v.unsqueeze(0).repeat(batch_size, 1)
+        z_v = z_v.unsqueeze(0).expand(batch_size, -1)
         if getattr(self.args, 'm2vae_attr_mask_neg1', False):
-            neg_inf = torch.full(z_v.shape, -1e6, device=z_v.device, dtype=z_v.dtype)
-            z_v = torch.where(attribute != -1, z_v, neg_inf)
+            z_v = z_v.masked_fill(attribute == -1, -1e6)
         else:
             valid_mask = attribute != 0
             all_zero_rows = torch.sum(valid_mask, dim=1) == 0

@@ -15,6 +15,7 @@ class KNN(BaseColdStartTrainer):
             self.encoder = LGCN_Encoder(self.data, self.emb_size, self.args.layers, self.device)
         self.knn_num = self.args.knn_num
         self._knn_mapped_ids = self._precompute_knn_neighbors()
+        self._knn_mapped_ids_tensor = None
 
     def train(self):
         encoder = self.encoder.to(self.device)
@@ -76,7 +77,13 @@ class KNN(BaseColdStartTrainer):
             return self.data.mapped_warm_user_idx[I]
 
     def knn_search(self, emb_table):
-        mapped_ids = torch.tensor(self._knn_mapped_ids, dtype=torch.long, device=self.device)
+        if self._knn_mapped_ids_tensor is None or self._knn_mapped_ids_tensor.device != emb_table.device:
+            self._knn_mapped_ids_tensor = torch.as_tensor(
+                self._knn_mapped_ids,
+                dtype=torch.long,
+                device=emb_table.device,
+            )
+        mapped_ids = self._knn_mapped_ids_tensor
         cold_generated_emb = torch.mean(emb_table[mapped_ids], dim=1)
         return cold_generated_emb
 

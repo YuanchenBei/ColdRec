@@ -170,11 +170,12 @@ class CCFCRec_Learner(nn.Module):
     def forward(self, u_idx, i_idx):
         attribute = self.item_content[i_idx]
         batch_size = u_idx.shape[0]
-        z_v = torch.matmul(torch.matmul(self.attr_matrix, self.attr_W1) + self.attr_b1.squeeze(), self.attr_W2)
-        z_v_copy = z_v.repeat(batch_size, 1, 1)
-        z_v_squeeze = z_v_copy.squeeze(dim=2).to(self.device)
-        neg_inf = torch.full(z_v_squeeze.shape, -1e6).to(self.device)
-        z_v_mask = torch.where(attribute != -1, z_v_squeeze, neg_inf)
+        z_v = torch.matmul(
+            torch.matmul(self.attr_matrix, self.attr_W1) + self.attr_b1.squeeze(),
+            self.attr_W2,
+        ).squeeze(dim=1)
+        z_v_squeeze = z_v.unsqueeze(0).expand(batch_size, -1)
+        z_v_mask = z_v_squeeze.masked_fill(attribute == -1, -1e6)
         attr_attention_weight = torch.softmax(z_v_mask, dim=1)
         final_attr_emb = torch.matmul(attr_attention_weight, self.attr_matrix)
         q_v_a = final_attr_emb
