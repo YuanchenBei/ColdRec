@@ -193,13 +193,20 @@ def next_batch_pairwise_CLCRec(data, batch_size, n_negs=1):
     shuffle(training_data)
     ptr = 0
     data_size = len(training_data)
-    # Match official CLCRec (weiyinwei/CLCRec): negative pool is all items minus cold_set.
-    cold_mapped = frozenset(data.mapped_cold_item_idx)
-    item_list = [k for k in data.item.keys() if data.item[k] not in cold_mapped]
-    if not item_list:
-        raise ValueError(
-            'next_batch_pairwise_CLCRec: warm-item negative pool is empty; check cold_item split.'
-        )
+    cache = getattr(data, '_clcrec_negative_candidates', None)
+    if cache is None:
+        # Match official CLCRec (weiyinwei/CLCRec): negative pool is all items minus cold_set.
+        cold_mapped = frozenset(data.mapped_cold_item_idx)
+        item_list = [k for k in data.item.keys() if data.item[k] not in cold_mapped]
+        if not item_list:
+            raise ValueError(
+                'next_batch_pairwise_CLCRec: warm-item negative pool is empty; check cold_item split.'
+            )
+        cache = {
+            user: [k for k in item_list if k not in data.training_set_u[user]]
+            for user in data.user.keys()
+        }
+        setattr(data, '_clcrec_negative_candidates', cache)
     while ptr < data_size:
         if ptr + batch_size < data_size:
             batch_end = ptr + batch_size
@@ -213,7 +220,7 @@ def next_batch_pairwise_CLCRec(data, batch_size, n_negs=1):
             u_idx.append([data.user[user]]*(1+n_negs))
             i_idx.append([data.item[items[i]]])
             # Without replacement (same as official CLCRec random.sample on pool \ user positives).
-            candidates = [k for k in item_list if k not in data.training_set_u[user]]
+            candidates = cache[user]
             if len(candidates) < n_negs:
                 raise ValueError(
                     f'next_batch_pairwise_CLCRec: user has only {len(candidates)} warm negatives '

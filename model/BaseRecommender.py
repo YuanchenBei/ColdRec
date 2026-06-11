@@ -42,6 +42,7 @@ class BaseColdStartTrainer(ABC):
             self.max_early_stop_patience = self.args.early_stop
         self.epochs_ran = 0
         self.eval_every = max(1, int(getattr(self.args, 'eval_every', 1)))
+        self._eval_cache = {}
 
     def print_basic_info(self):
         print('*' * 80)
@@ -105,6 +106,50 @@ class BaseColdStartTrainer(ABC):
         """
         pass
 
+    def _get_eval_cache(self, data_set: Dict, data_type: str) -> Dict[str, Any]:
+        key = (id(data_set), data_type, str(self.device), self.args.cold_object)
+        cached = self._eval_cache.get(key)
+        if cached is not None:
+            return cached
+
+        users = list(data_set.keys())
+        rated_item_ids = []
+        for user in users:
+            rated_list = list(self.data.training_set_u[user].keys())
+            if rated_list:
+                rated_item_ids.append(
+                    torch.tensor(
+                        self.data.get_item_id_list(rated_list),
+                        dtype=torch.long,
+                        device=self.device,
+                    )
+                )
+            else:
+                rated_item_ids.append(None)
+
+        candidate_mask = None
+        if self.args.cold_object == 'item':
+            if data_type == 'warm':
+                candidate_mask = torch.tensor(
+                    self.data.mapped_cold_item_idx,
+                    dtype=torch.long,
+                    device=self.device,
+                )
+            elif data_type == 'cold':
+                candidate_mask = torch.tensor(
+                    self.data.mapped_warm_item_idx,
+                    dtype=torch.long,
+                    device=self.device,
+                )
+
+        cached = {
+            'users': users,
+            'rated_item_ids': rated_item_ids,
+            'candidate_mask': candidate_mask,
+        }
+        self._eval_cache[key] = cached
+        return cached
+
     def _evaluate(self, data_set: Dict, data_type: str = 'all') -> Dict[str, List[Tuple[str, float]]]:
         """
         Evaluate the model on a given dataset using batch prediction.
@@ -118,21 +163,21 @@ class BaseColdStartTrainer(ABC):
         """
         rec_list = {}
         batch_size = self.batch_size
-        for i in range(0, len(data_set), batch_size):
-            batch_users = list(data_set.keys())[i:i + batch_size]
+        eval_cache = self._get_eval_cache(data_set, data_type)
+        users = eval_cache['users']
+        rated_item_ids = eval_cache['rated_item_ids']
+        candidate_mask = eval_cache['candidate_mask']
+        for i in range(0, len(users), batch_size):
+            batch_users = users[i:i + batch_size]
             batch_candidates = self.batch_predict(batch_users)
             if isinstance(batch_candidates, np.ndarray):
                 batch_candidates = torch.as_tensor(batch_candidates, device=self.device)
-            for j, user in enumerate(batch_users):
-                candidates = batch_candidates[j]
-                rated_list = list(self.data.training_set_u[user].keys())
-                if len(rated_list) != 0:
-                    candidates[self.data.get_item_id_list(rated_list)] = -10e8
+            for j, rated_ids in enumerate(rated_item_ids[i:i + batch_size]):
+                if rated_ids is not None:
+                    batch_candidates[j, rated_ids] = -10e8
 
-            if data_type == 'warm' and self.args.cold_object == 'item':
-                batch_candidates[:, self.data.mapped_cold_item_idx] = -10e8
-            elif data_type == 'cold' and self.args.cold_object == 'item':
-                batch_candidates[:, self.data.mapped_warm_item_idx] = -10e8
+            if candidate_mask is not None:
+                batch_candidates[:, candidate_mask] = -10e8
 
             scores, indices = torch.topk(batch_candidates, self.max_N, dim=1, largest=True, sorted=True)
             batch_ids, batch_scores = indices.cpu().numpy(), scores.cpu().numpy()

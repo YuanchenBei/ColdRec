@@ -14,6 +14,7 @@ class KNN(BaseColdStartTrainer):
         else:
             self.encoder = LGCN_Encoder(self.data, self.emb_size, self.args.layers, self.device)
         self.knn_num = self.args.knn_num
+        self._knn_mapped_ids = self._precompute_knn_neighbors()
 
     def train(self):
         encoder = self.encoder.to(self.device)
@@ -39,14 +40,10 @@ class KNN(BaseColdStartTrainer):
                 self.user_emb = now_user_emb.clone()
                 self.item_emb = now_item_emb.clone()
                 if self.args.cold_object == 'item':
-                    cold_item_content = self.data.mapped_item_content[self.data.mapped_cold_item_idx]
-                    warm_item_content = self.data.mapped_item_content[self.data.mapped_warm_item_idx]
-                    cold_generated_emb = self.knn_search(cold_item_content, warm_item_content, now_item_emb)
+                    cold_generated_emb = self.knn_search(now_item_emb)
                     self.item_emb.data[self.data.mapped_cold_item_idx] = cold_generated_emb
                 else:
-                    cold_user_content = self.data.mapped_user_content[self.data.mapped_cold_user_idx]
-                    warm_user_content = self.data.mapped_user_content[self.data.mapped_warm_user_idx]
-                    cold_generated_emb = self.knn_search(cold_user_content, warm_user_content, now_user_emb)
+                    cold_generated_emb = self.knn_search(now_user_emb)
                     self.user_emb.data[self.data.mapped_cold_user_idx] = cold_generated_emb
                 if epoch % self.eval_every == 0:
                     self.fast_evaluation(epoch, valid_type='all')
@@ -62,18 +59,24 @@ class KNN(BaseColdStartTrainer):
             torch.save(self.user_emb, f"./emb/{self.args.dataset}_cold_{self.args.cold_object}_{self.args.model}_user_emb.pt")
             torch.save(self.item_emb, f"./emb/{self.args.dataset}_cold_{self.args.cold_object}_{self.args.model}_item_emb.pt")
 
-    def knn_search(self, content_query, content_value, emb_table):
+    def _precompute_knn_neighbors(self):
         if self.args.cold_object == 'item':
-            self.model = faiss.IndexFlatIP(self.data.item_content_dim)
+            content_query = self.data.mapped_item_content[self.data.mapped_cold_item_idx]
+            content_value = self.data.mapped_item_content[self.data.mapped_warm_item_idx]
+            index = faiss.IndexFlatIP(self.data.item_content_dim)
         else:
-            self.model = faiss.IndexFlatIP(self.data.user_content_dim)
-        self.model.add(content_value)
-        D, I = self.model.search(content_query, self.knn_num)
+            content_query = self.data.mapped_user_content[self.data.mapped_cold_user_idx]
+            content_value = self.data.mapped_user_content[self.data.mapped_warm_user_idx]
+            index = faiss.IndexFlatIP(self.data.user_content_dim)
+        index.add(content_value)
+        _, I = index.search(content_query, self.knn_num)
         if self.args.cold_object == 'item':
-            mapped_ids = self.data.mapped_warm_item_idx[I]
+            return self.data.mapped_warm_item_idx[I]
         else:
-            mapped_ids = self.data.mapped_warm_user_idx[I]
-        mapped_ids = torch.LongTensor(mapped_ids).to(self.device)
+            return self.data.mapped_warm_user_idx[I]
+
+    def knn_search(self, emb_table):
+        mapped_ids = torch.tensor(self._knn_mapped_ids, dtype=torch.long, device=self.device)
         cold_generated_emb = torch.mean(emb_table[mapped_ids], dim=1)
         return cold_generated_emb
 
@@ -83,14 +86,10 @@ class KNN(BaseColdStartTrainer):
             self.best_user_emb = now_best_user_emb.clone()
             self.best_item_emb = now_best_item_emb.clone()
             if self.args.cold_object == 'item':
-                cold_item_content = self.data.mapped_item_content[self.data.mapped_cold_item_idx]
-                warm_item_content = self.data.mapped_item_content[self.data.mapped_warm_item_idx]
-                cold_generated_emb = self.knn_search(cold_item_content, warm_item_content, now_best_item_emb)
+                cold_generated_emb = self.knn_search(now_best_item_emb)
                 self.best_item_emb.data[self.data.mapped_cold_item_idx] = cold_generated_emb
             else:
-                cold_user_content = self.data.mapped_user_content[self.data.mapped_cold_user_idx]
-                warm_user_content = self.data.mapped_user_content[self.data.mapped_warm_user_idx]
-                cold_generated_emb = self.knn_search(cold_user_content, warm_user_content, now_best_user_emb)
+                cold_generated_emb = self.knn_search(now_best_user_emb)
                 self.best_user_emb.data[self.data.mapped_cold_user_idx] = cold_generated_emb
 
     def predict(self, u):

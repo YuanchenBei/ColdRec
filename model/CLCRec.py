@@ -103,11 +103,13 @@ class CLCRec_Learner(nn.Module):
         })
         return embedding_dict
 
-    def encoder(self):
+    def encoder(self, idx=None):
         if self.args.cold_object == 'item':
             feature = self.item_content
         else:
             feature = self.user_content
+        if idx is not None:
+            feature = feature[idx]
         feature = F.leaky_relu(self.encoder_layer1(feature))
         feature = self.encoder_layer2(feature)
         return feature
@@ -127,8 +129,7 @@ class CLCRec_Learner(nn.Module):
         user_tensor = user_tensor.view(-1, 1).squeeze()
         item_tensor = item_tensor.view(-1, 1).squeeze()
 
-        feature = self.encoder()
-        all_item_feat = feature[item_tensor]
+        all_item_feat = self.encoder(item_tensor)
 
         user_embedding = self.embedding_dict['user_emb'][user_tensor]
         pos_item_embedding = self.embedding_dict['item_emb'][pos_item_tensor]
