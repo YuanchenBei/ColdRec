@@ -240,7 +240,20 @@ def next_batch_pairwise_CCFCRec(data, batch_size, positive_number, negative_numb
     ptr = 0
     data_size = len(training_data)
     user_list = list(data.user.keys())
-    item_list = list(data.item.keys())
+    cache = getattr(data, '_ccfcrec_negative_candidates', None)
+    if cache is None:
+        cold_mapped = frozenset(data.mapped_cold_item_idx)
+        item_list = [item for item in data.item.keys() if data.item[item] not in cold_mapped]
+        if not item_list:
+            raise ValueError(
+                'next_batch_pairwise_CCFCRec: warm-item candidate pool is empty; '
+                'check the cold item split.'
+            )
+        cache = {
+            user: [item for item in item_list if item not in data.training_set_u[user]]
+            for user in data.user.keys()
+        }
+        setattr(data, '_ccfcrec_negative_candidates', cache)
     while ptr < data_size:
         if ptr + batch_size < data_size:
             batch_end = ptr + batch_size
@@ -261,11 +274,15 @@ def next_batch_pairwise_CCFCRec(data, batch_size, positive_number, negative_numb
             pos_i_list.append(
                 [data.item[x] for x in np.random.choice(list(positive_items_), positive_number, replace=True)]
             )
+            negative_candidates = cache[user]
+            if not negative_candidates:
+                raise ValueError(
+                    f'next_batch_pairwise_CCFCRec: user {user!r} has no warm negative items '
+                    'available after excluding cold items and training positives.'
+                )
             tmp_neg_i_list = []
             for m in range(positive_number*negative_number):
-                neg_item = choice(item_list)
-                while neg_item in data.training_set_u[user]:
-                    neg_item = choice(item_list)
+                neg_item = choice(negative_candidates)
                 tmp_neg_i_list.append(data.item[neg_item])
             for mm in range(positive_number):
                 start_idx = negative_number * mm
@@ -275,9 +292,7 @@ def next_batch_pairwise_CCFCRec(data, batch_size, positive_number, negative_numb
                 else:
                     neg_i_list[i].append(tmp_neg_i_list[start_idx:end_idx])
             for m in range(self_neg_number):
-                neg_item = choice(item_list)
-                while neg_item in data.training_set_u[user]:
-                    neg_item = choice(item_list)
+                neg_item = choice(negative_candidates)
                 if m == 0:
                     self_neg_list.append([data.item[neg_item]])
                 else:

@@ -14,6 +14,26 @@ class CCFCRec(BaseColdStartTrainer):
             raise Exception('Cold user is not supported in CCFCRec due to its specific design for item cold-start problem.')
         self.model = CCFCRec_Learner(self.args, self.data, self.emb_size, self.device)
 
+    def _item_embeddings_for_eval(self):
+        """Use generated content-CF embeddings for cold items, as in CCFCRec inference."""
+        item_emb = self.model.item_embedding.detach().clone()
+        cold_idx = torch.as_tensor(
+            self.data.mapped_cold_item_idx,
+            dtype=torch.long,
+            device=self.device,
+        )
+        if cold_idx.numel() == 0:
+            return item_emb
+        dummy_users = torch.zeros(cold_idx.numel(), dtype=torch.long, device=self.device)
+        generated = self.model(dummy_users, cold_idx).detach()
+        if generated.shape[1] != item_emb.shape[1]:
+            raise ValueError(
+                f'CCFCRec generated item dim {generated.shape[1]} does not match '
+                f'item embedding dim {item_emb.shape[1]}.'
+            )
+        item_emb[cold_idx] = generated
+        return item_emb
+
     def train(self):
         model = self.model.to(self.device)
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr)
@@ -74,10 +94,8 @@ class CCFCRec(BaseColdStartTrainer):
 
             with torch.no_grad():
                 model.eval()
-                now_user_emb = self.model.user_embedding
-                now_item_emb = self.model.item_embedding
-                self.user_emb = now_user_emb.clone()
-                self.item_emb = now_item_emb.clone()
+                self.user_emb = self.model.user_embedding.detach().clone()
+                self.item_emb = self._item_embeddings_for_eval()
                 if epoch % self.eval_every == 0:
                     self.fast_evaluation(epoch, valid_type='all')
                     if self.early_stop_flag:
@@ -94,10 +112,8 @@ class CCFCRec(BaseColdStartTrainer):
 
     def save(self):
         with torch.no_grad():
-            now_best_user_emb = self.model.user_embedding
-            now_best_item_emb = self.model.item_embedding
-            self.best_user_emb = now_best_user_emb.clone()
-            self.best_item_emb = now_best_item_emb.clone()
+            self.best_user_emb = self.model.user_embedding.detach().clone()
+            self.best_item_emb = self._item_embeddings_for_eval()
 
     def predict(self, u):
         with torch.no_grad():
@@ -153,7 +169,7 @@ class CCFCRec_Learner(nn.Module):
             self.user_embedding = nn.Parameter(torch.FloatTensor(self.data.user_num, self.args.implicit_dim))
             self.item_embedding = nn.Parameter(torch.FloatTensor(self.data.item_num, self.args.implicit_dim))
         self.gen_layer1 = nn.Linear(self.args.attr_present_dim, self.args.cat_implicit_dim)
-        self.gen_layer2 = nn.Linear(self.args.attr_present_dim, self.args.attr_present_dim)
+        self.gen_layer2 = nn.Linear(self.args.cat_implicit_dim, self.item_embedding.shape[1])
         self.__init_param__()
 
     def __init_param__(self):
