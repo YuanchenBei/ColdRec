@@ -137,6 +137,9 @@ class CCFCRec_Learner(nn.Module):
         self.device = device
         self.data = data
         self.item_content = torch.tensor(self.data.mapped_item_content, dtype=torch.float32, requires_grad=False).to(device)
+        self.content_eps = 1e-8
+        missing_ratio = (self.item_content == -1).float().mean().item()
+        self.uses_missing_sentinel = missing_ratio > 0.01
         self.attr_matrix = torch.nn.Parameter(torch.FloatTensor(self.data.item_content_dim, self.args.attr_present_dim))
         self.attr_W1 = torch.nn.Parameter(torch.FloatTensor(self.args.attr_present_dim, self.args.attr_present_dim))
         self.attr_b1 = torch.nn.Parameter(torch.FloatTensor(self.args.attr_present_dim, 1))
@@ -186,14 +189,34 @@ class CCFCRec_Learner(nn.Module):
     def forward(self, u_idx, i_idx):
         attribute = self.item_content[i_idx]
         batch_size = u_idx.shape[0]
+        if self.uses_missing_sentinel:
+            valid_mask = attribute != -1
+            attribute_value = attribute.masked_fill(~valid_mask, 0.0)
+        else:
+            valid_mask = torch.ones_like(attribute, dtype=torch.bool)
+            attribute_value = attribute
+
         z_v = torch.matmul(
             torch.matmul(self.attr_matrix, self.attr_W1) + self.attr_b1.squeeze(),
             self.attr_W2,
         ).squeeze(dim=1)
+
+        # Official CCFCRec uses item attributes as a presence mask. ColdRec stores
+        # continuous metadata vectors, so generalize the mask to magnitude-gated,
+        # signed attribute aggregation. For binary attributes this reduces to the
+        # original attention over present dimensions.
         z_v_squeeze = z_v.unsqueeze(0).expand(batch_size, -1)
-        z_v_mask = z_v_squeeze.masked_fill(attribute == -1, -1e6)
+        magnitude = attribute_value.abs()
+        active_mask = valid_mask & (magnitude > self.content_eps)
+        has_active = active_mask.any(dim=1, keepdim=True)
+        effective_mask = torch.where(has_active, active_mask, valid_mask)
+        z_v_mask = z_v_squeeze + torch.log(magnitude.clamp_min(self.content_eps))
+        z_v_mask = z_v_mask.masked_fill(~effective_mask, -1e6)
         attr_attention_weight = torch.softmax(z_v_mask, dim=1)
-        final_attr_emb = torch.matmul(attr_attention_weight, self.attr_matrix)
+        weighted_attribute = attr_attention_weight * attribute_value
+        default_attribute = attr_attention_weight
+        weighted_attribute = torch.where(has_active, weighted_attribute, default_attribute)
+        final_attr_emb = torch.matmul(weighted_attribute, self.attr_matrix)
         q_v_a = final_attr_emb
         q_v_c = self.gen_layer2(self.h(self.gen_layer1(q_v_a)))
         return q_v_c
