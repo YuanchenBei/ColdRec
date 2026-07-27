@@ -117,14 +117,3 @@ You can flexibly set the tuning range in param_search.py.
 The codebase architecture of ColdRec on some foundational operators is based on the **excellent repo [SELFRec](https://github.com/Coder-Yu/SELFRec)**. Thanks to their pioneering open-sourced work!
 
 The suggestions provided by **open-source community users** are of great help in improving this framework. Thanks to them!
-
----
-## 📜 Citation
-``` bibtex
-@article{zhang2025cold,
-  title={Cold-start recommendation towards the era of large language models (llms): A comprehensive survey and roadmap},
-  author={Zhang, Weizhi and Bei, Yuanchen and Yang, Liangwei and Zou, Henry Peng and Zhou, Peilin and Liu, Aiwei and Li, Yinghui and Chen, Hao and Wang, Jianling and Wang, Yu and others},
-  journal={arXiv preprint arXiv:2501.01945},
-  year={2025}
-}
-```
