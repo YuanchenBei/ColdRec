@@ -21,6 +21,8 @@ from .MTPR import MTPR
 from .NCL import NCL
 from .NGCF import NGCF
 from .SimGCL import SimGCL
+from .SimCSR import SimCSR
+from .LightCSR import LightCSR
 from .USIM import USIM
 from .VBPR import VBPR
 from .XSimGCL import XSimGCL
@@ -49,6 +51,8 @@ AVAILABLE_MODELS = {
     'NCL': NCL,
     'NGCF': NGCF,
     'SimGCL': SimGCL,
+    'SimCSR': SimCSR,
+    'LightCSR': LightCSR,
     'USIM': USIM,
     'VBPR': VBPR,
     'XSimGCL': XSimGCL,

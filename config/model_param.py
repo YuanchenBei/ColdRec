@@ -239,6 +239,116 @@ def model_specific_param(model_name, parser, available_models):
             const=True,
             help='L_fc MSE only on cold_object side (mapped_cold_*); false = both user+item',
         )
+        parser.add_argument(
+            '--fsgnn_exact_chunk_ppr',
+            type=_str2bool,
+            default=False,
+            nargs='?',
+            const=True,
+            help=(
+                'Use exact user-chunked PPR construction to avoid dense all-user PPR memory. '
+                'Default false preserves the original dense FSGNN implementation.'
+            ),
+        )
+        parser.add_argument(
+            '--fsgnn_ppr_user_chunk',
+            type=int,
+            default=64,
+            help='Users per chunk for --fsgnn_exact_chunk_ppr; only affects memory, not PPR semantics.',
+        )
+        parser.add_argument(
+            '--fsgnn_knn_row_chunk',
+            type=int,
+            default=256,
+            help='Rows per exact cosine-kNN chunk; lower values reduce peak memory without changing kNN semantics.',
+        )
+    elif model_name in ('SimCSR', 'LightCSR'):
+        parser.set_defaults(lr=0.001, reg=0.0001, emb_size=64, epochs=200, bs=4096)
+        parser.add_argument('--cmct_knn_k', type=int, default=10)
+        parser.add_argument('--cmct_knn_chunk', type=int, default=1024)
+        parser.add_argument('--cmct_kernel_temp', type=float, default=0.2)
+        parser.add_argument('--cmct_hidden', type=int, default=256)
+        parser.add_argument('--cmct_encoder_layers', type=int, default=2)
+        parser.add_argument('--cmct_dropout', type=float, default=0.0)
+        parser.add_argument('--cmct_gate', type=str, default='fixed')
+        parser.add_argument('--cmct_fixed_alpha', type=float, default=0.0)
+        parser.add_argument('--cmct_gate_bias_init', type=float, default=-2.0)
+        parser.add_argument('--cmct_warm_mix', type=float, default=0.0)
+        parser.add_argument('--cmct_warm_beta', type=float, default=0.0)
+        parser.add_argument('--cmct_cold_scale', type=float, default=1.0)
+        parser.add_argument('--cmct_align_batch', type=int, default=4096)
+        parser.add_argument('--cmct_embed_weight', type=float, default=1.0)
+        parser.add_argument('--cmct_score_weight', type=float, default=0.0)
+        parser.add_argument('--cmct_score_users', type=int, default=256)
+        parser.add_argument('--cmct_pair_weight', type=float, default=0.0)
+        parser.add_argument('--cmct_pair_samples', type=int, default=1024)
+        parser.add_argument('--cmct_contrast_weight', type=float, default=0.0)
+        parser.add_argument('--cmct_contrast_temp', type=float, default=0.2)
+        parser.add_argument('--cmct_lap_weight', type=float, default=0.0)
+        parser.add_argument('--cmct_norm_mix', type=float, default=1.0)
+        parser.add_argument('--cmct_weight_decay', type=float, default=0.0)
+        parser.add_argument('--cmct_clip_norm', type=float, default=5.0)
+        parser.add_argument('--cmct_freeze_backbone', type=_str2bool, nargs='?', const=True, default=True)
+        parser.add_argument('--dct_reliability_power', type=float, default=1.0)
+        parser.add_argument('--dct_min_reliability', type=float, default=0.05)
+        parser.add_argument('--dct_max_reliability', type=float, default=0.95)
+        parser.add_argument('--dct_teacher_weight', type=float, default=0.5)
+        parser.add_argument('--dct_teacher_contrast_weight', type=float, default=0.0)
+        parser.add_argument('--ca_weight', type=float, default=0.0)
+        parser.add_argument('--ca_pair_samples', type=int, default=1024)
+        parser.add_argument('--ca_negatives', type=int, default=4)
+        parser.add_argument('--ca_temp', type=float, default=1.0)
+        parser.add_argument('--clr_residual_mix', type=float, default=0.5)
+        parser.add_argument('--clr_max_residual_rel', type=float, default=0.5)
+        parser.add_argument('--clr_orthogonal_residual', type=_str2bool, nargs='?', const=True, default=False)
+        parser.add_argument('--dh_min_direct_mix', type=float, default=0.0)
+        parser.add_argument('--dh_max_direct_mix', type=float, default=0.75)
+        parser.add_argument('--dh_gate_power', type=float, default=1.0)
+        parser.add_argument('--lc_weight', type=float, default=0.0)
+        parser.add_argument('--lc_temp', type=float, default=0.2)
+        parser.add_argument('--lc_hard_negatives', type=int, default=8)
+        parser.add_argument('--clt_teacher_lc_weight', type=float, default=0.0)
+        parser.add_argument('--rg_lc_floor', type=float, default=0.25)
+        parser.add_argument('--rg_cold_boost', type=float, default=0.25)
+        parser.add_argument('--cw_cal_weight', type=float, default=0.0)
+        parser.add_argument('--cw_cal_topk_mult', type=int, default=1)
+        parser.add_argument('--cw_cal_max_shift', type=float, default=1.0)
+        parser.add_argument('--wu_pos_score_weight', type=float, default=0.0)
+        parser.add_argument('--wu_norm_mix', type=float, default=0.5)
+        parser.add_argument('--wu_norm_power', type=float, default=1.0)
+        parser.add_argument('--drdh_max_residual_rel', type=float, default=1.0)
+        parser.add_argument('--drdh_detach_neighbor_teacher', type=_str2bool, nargs='?', const=True, default=True)
+        parser.add_argument('--dag_min_direct_mix', type=float, default=0.0)
+        parser.add_argument('--dag_max_direct_mix', type=float, default=0.75)
+        parser.add_argument('--dag_reliability_power', type=float, default=1.0)
+        parser.add_argument('--dag_delta_center', type=float, default=0.5)
+        parser.add_argument('--dag_delta_sharpness', type=float, default=4.0)
+        parser.add_argument('--an_norm_mix', type=float, default=0.5)
+        parser.add_argument('--an_max_boost', type=float, default=0.5)
+        parser.add_argument('--an_uncertainty_power', type=float, default=1.0)
+        parser.add_argument('--unicmct_warm_locked', type=_str2bool, nargs='?', const=True, default=True)
+        parser.add_argument('--new_rank_distill_weight', type=float, default=0.0)
+        parser.add_argument('--new_rank_distill_temp', type=float, default=0.5)
+        parser.add_argument('--new_rank_distill_candidates', type=int, default=8)
+        parser.add_argument('--new_rank_distill_samples', type=int, default=1024)
+        parser.add_argument('--new_rank_distill_gate', type=str, default='none')
+        parser.add_argument('--new_rank_distill_gate_power', type=float, default=1.0)
+        parser.add_argument(
+            '--simcsr_no_neighbor_message',
+            type=_str2bool,
+            nargs='?',
+            const=True,
+            default=False,
+            help='Ablation only: generate cold/warm embeddings from the content encoder without virtual-neighbor messages.',
+        )
+        parser.add_argument(
+            '--lightcsr_no_neighbor_message',
+            type=_str2bool,
+            nargs='?',
+            const=True,
+            default=False,
+            help='Ablation only: generate cold/warm embeddings from the content encoder without virtual-neighbor messages.',
+        )
     elif model_name == 'DropoutNet':
         parser.add_argument('--n_dropout', type=float, default=0.5, help='Dropout rate of the network training')
         parser.add_argument(
